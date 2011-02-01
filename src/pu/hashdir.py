@@ -6,6 +6,9 @@ import os
 import tempfile
 
 def files_differ(A, B):
+    '''
+    Return True if the content of the two files differ, False otherwise.
+    '''
     if os.stat(A).st_size != os.stat(B).st_size: return True
 
     differ_status = False
@@ -26,6 +29,11 @@ def files_differ(A, B):
     return differ_status
 
 def add_file(addee, rootdir = ''):
+    '''
+    Add the given file to the given hash directory and return the digest
+    name relative to the directory.  The addee can be given as either
+    a file name or a file-like object.
+    '''
     if rootdir and not os.path.exists(rootdir):
         raise ValueError('Directory not there: ' + rootdir)
     if rootdir and not os.path.isdir(rootdir):
