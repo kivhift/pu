@@ -3,10 +3,23 @@
 import os
 
 class LineListIO(object):
+    '''
+    This class wraps a list of lines so as to be able to use them as a
+    file-like object.  The main objective is to be able to have a read method
+    that will return the "file data" with new lines automatically added to the
+    ends of lines.  The main reason for the existence of this class is to be
+    able to take POP3.retr()ed line lists and write them to file without having
+    to build the whole file in memory since email can sometimes be bloated due
+    to attachments and the like.
+    '''
     def __init__(self, linelist = []):
         self.setLineList(linelist)
 
     def setLineList(self, linelist):
+        '''
+        Set the internal list of lines to the new value and reset the
+        internal state.
+        '''
         self._lines = linelist
         self._ln = 0
         self._intralnpos = 0
