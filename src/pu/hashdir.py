@@ -28,11 +28,21 @@ def files_differ(A, B):
 
     return differ_status
 
+def get_dir_name_from_hexdigest(digest):
+    return digest[0:2]
+
+def get_file_name_from_hexdigest(digest):
+    return digest[2:]
+
+def get_path_from_hexdigest(digest):
+    return os.path.join(get_dir_name_from_hexdigest(digest),
+        get_file_name_from_hexdigest(digest))
+
 def add_file(addee, rootdir = ''):
     '''
-    Add the given file to the given hash directory and return the digest
-    name relative to the directory.  The addee can be given as either
-    a file name or a file-like object.
+    Add the given file to the given hash directory and return the hex digest
+    thereof.  The addee can be given as either a file name or a file-like
+    object.
     '''
     if rootdir and not os.path.exists(rootdir):
         raise ValueError('Directory not there: ' + rootdir)
@@ -60,12 +70,11 @@ def add_file(addee, rootdir = ''):
         if fdo is not None: os.close(fdo)
 
     digest = fhash.hexdigest()
-    pre, rest = digest[0:2], digest[2:]
 
-    fdir = os.path.join(rootdir, pre)
+    fdir = os.path.join(rootdir, get_dir_name_from_hexdigest(digest))
     if not os.path.exists(fdir): os.mkdir(fdir)
 
-    targ = os.path.join(fdir, rest)
+    targ = os.path.join(rootdir, get_path_from_hexdigest(digest))
     if os.path.exists(targ):
         if files_differ(fdo_name, targ):
             raise RuntimeError('Addee collided with extant file: %s, %s' % (
@@ -74,4 +83,4 @@ def add_file(addee, rootdir = ''):
     else:
         os.rename(fdo_name, targ)
 
-    return os.path.join(pre, rest)
+    return digest
