@@ -446,9 +446,21 @@ def version_string2number(vs):
 def random_string(length):
     return ''.join([chr(random.randint(0, 255)) for i in xrange(length)])
 
-class DataContainer(object):
-    def __init__(self, **kwargs):
-        self.__dict__ = kwargs
+class DataContainer(dict):
+    def __getattr__(self, attr):
+        if self.has_key(attr):
+            return self[attr]
+        raise AttributeError(
+            "'DataContainer' object has no attribute '%s'" % attr)
+
+    def __setattr__(self, attr, val):
+        self[attr] = val
+
+    def __delattr__(self, attr):
+        if not self.has_key(attr):
+            raise AttributeError(
+                "'DataContainer' object has no attribute '%s'" % attr)
+        del self[attr]
 
 def fn_with_retries(fn, limit, wait, reset_fn, *args, **kwargs):
     def fwr(*args, **kwargs):
