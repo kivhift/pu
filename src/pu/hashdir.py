@@ -38,11 +38,12 @@ def get_path_from_hexdigest(digest):
     return os.path.join(get_dir_name_from_hexdigest(digest),
         get_file_name_from_hexdigest(digest))
 
-def add_file(addee, rootdir = ''):
+def add_file(addee, rootdir = '.', rename = False):
     '''
     Add the given file to the given hash directory and return the hex digest
     thereof.  The addee can be given as either a file name or a file-like
-    object.
+    object.  If rename_file is True and addee is an already extant file,
+    then it is moved to the new location instead of a copy of it.
     '''
     if rootdir and not os.path.exists(rootdir):
         raise ValueError('Directory not there: ' + rootdir)
@@ -50,19 +51,24 @@ def add_file(addee, rootdir = ''):
         raise ValueError('Not directory: ' + rootdir)
 
     fi = fdo = None
+    rename_addee = False
     try:
         if type(addee) in (str, unicode):
             fi = open(addee, 'rb')
+            rename_addee = rename
         else:
             fi = addee
 
-        fdo, fdo_name = tempfile.mkstemp(dir = rootdir)
+        if not rename_addee:
+            fdo, fdo_name = tempfile.mkstemp(dir = rootdir)
+        else:
+            fdo_name = addee
 
         sz = io.DEFAULT_BUFFER_SIZE
         fhash = hashlib.sha1()
         while True:
             buf = fi.read(sz)
-            os.write(fdo, buf)
+            if not rename_addee: os.write(fdo, buf)
             fhash.update(buf)
             if len(buf) < sz: break
     finally:
@@ -84,3 +90,20 @@ def add_file(addee, rootdir = ''):
         os.rename(fdo_name, targ)
 
     return digest
+
+class HashDir(object):
+    def __init__(self, rootdir = '.', rename = False):
+        self.rootdir = rootdir
+        self.rename = rename
+
+    def addFile(self, addee):
+        '''Add addee to the hashdir and return the hex digest thereof.'''
+        return add_file(addee, self.rootdir, self.rename)
+
+    def pathFromHexDigest(self, digest):
+        '''Get the path to the file associated with the given digest.'''
+        return os.path.join(self.rootdir, get_path_from_hexdigest(digest))
+
+    def openFileFromHexDigest(self, digest):
+        '''Open the file associated with the given digest for reading.'''
+        return open(self.pathFromHexDigest(digest), 'rb')
