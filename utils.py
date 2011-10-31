@@ -292,10 +292,7 @@ def checked_property(name, description = None, default = None,
             s._checked_properties = {}
     def _get(s):
         _check(s)
-        if s._checked_properties.has_key(name):
-            return s._checked_properties[name]
-        else:
-            return default
+        return s._checked_properties.get(name, default)
     def _set(s, val):
         if not is_valid(val):
             raise ValueError('Invalid %s given: %s.' % (
