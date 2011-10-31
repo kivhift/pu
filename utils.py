@@ -9,6 +9,7 @@ import re
 import sys
 import textwrap
 import time
+import types
 
 def die(msg='', func=None, ecode=1, *args):
     """Print msg, call func and sys.exit with ecode.
@@ -527,6 +528,19 @@ def rotn_cycle(s, sep = '\n', numbered = True):
     for i in xrange(26):
         r.append('%s%s' % ('%02d ' % i if numbered else '', rotn(s, i)))
     return sep.join(r)
+
+def import_code(code, name, doc = None, add_to_sys = False):
+    ''' This function is inspired by recipe 16.2, PCB 2nd ed.
+
+    Returns a new module object initialized by importing the given code.
+    If add_to_sys is True, then the new module is added to sys.modules with
+    the given name.  Due to the use of exec, code can be a string, a
+    file-like object or a compiled code object.
+    '''
+    module = types.ModuleType(name, doc)
+    if add_to_sys: sys.modules[name] = module
+    exec code in module.__dict__
+    return module
 
 if __name__ == '__main__':
     print "--LOCAL--"
