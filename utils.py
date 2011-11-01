@@ -11,6 +11,25 @@ import textwrap
 import time
 import types
 
+# Cache this for later.  It might be useful for restart() below.
+cwd_at_import = os.getcwd()
+def restart(start_cwd = None):
+    '''
+    This function is inspired by (i.e., purloined from) _do_execv in
+    cherrypy.process.wspbus (v3.2).  It doesn't seem to work too well when
+    running an interactive script that's started from a shell.  (They get
+    into a fight over stdin.)
+
+    User beware!  Make sure to clean up your loose ends.  You won't return
+    from this function call.
+    '''
+    args = [sys.executable]
+    for a in sys.argv:
+        if a: args.append(a)
+    if 'win32' == sys.platform: args = ['"%s"' % a for a in args]
+    if start_cwd: os.chdir(start_cwd)
+    os.execv(sys.executable, args)
+
 def die(msg='', func=None, ecode=1, *args):
     """Print msg, call func and sys.exit with ecode.
 
