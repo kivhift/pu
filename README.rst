@@ -8,5 +8,5 @@ years.  YMMV.
 Installation
 ------------
 1. Clone the repository.
-2. Add the directory to your PYTHONPATH.
+2. Add the source directory to your PYTHONPATH.
 3. Enjoy!
