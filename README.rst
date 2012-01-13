@@ -10,3 +10,7 @@ Installation
 1. Clone the repository.
 2. Add the source directory to your PYTHONPATH.
 3. Enjoy!
+
+License
+-------
+Released under the MIT license.  See MIT-LICENSE.txt for information.

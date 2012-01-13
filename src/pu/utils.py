@@ -1,5 +1,7 @@
 #!/usr/bin/python
-
+#
+# Copyright (c) 2005-2012 Joshua Hughes <kivhift@gmail.com>
+#
 import glob
 import inspect
 import itertools
