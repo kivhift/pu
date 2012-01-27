@@ -12,9 +12,13 @@ def carefully_install(env, wohin, was):
     '''
     return env.Precious(env.NoClean(env.Install(wohin, was)))
 
-def decrlf(target, source, env):
+def be_careful_with(env, was):
+    '''Make sure that the given target was isn't clobbered.'''
+    return env.Precious(env.NoClean(was))
+
+def fix_trailing_whitespace(target, source, env):
     '''
-    Remove those pesky CRLFs from the end of lines.
+    Remove trailing whitespace from the end of lines.
     '''
     for t in target:
         name = str(t)
@@ -30,3 +34,5 @@ def decrlf(target, source, env):
             tf.seek(0, os.SEEK_SET)
             with open(name, 'w+b') as f:
                 f.write(tf.read())
+
+decrlf = fix_trailing_whitespace
