@@ -560,6 +560,24 @@ def import_code(code, name, doc = None, add_to_sys = False):
     exec code in module.__dict__
     return module
 
+def is_a_string(s):
+    '''This is recipe 1.3, PCB 2nd ed.
+
+    Returns True if the argument is a string, False otherwise.
+    '''
+    return isinstance(s, basestring)
+
+def is_string_like(s):
+    '''This is recipe 1.4, PCB 2nd ed.
+
+    Returns True if the argument walks like a string, False otherwise.
+    '''
+    try:
+        s + ''
+        return True
+    except:
+        return False
+
 if __name__ == '__main__':
     print "--LOCAL--"
     print "\tDATE:", date_str()
