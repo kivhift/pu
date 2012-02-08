@@ -7,7 +7,7 @@ import os
 import tarfile
 import tempfile
 
-from pu.utils import import_code
+from pu.utils import import_code, is_a_string
 
 def carefully_install(env, wohin, was):
     '''
@@ -84,7 +84,7 @@ def tar_gz_from_config(target, source, env):
 
     with contextlib.closing(tarfile.open(name = t, mode = 'w:gz')) as tf:
         for f in cfg.archive_config:
-            if type(f) in (str, unicode):
+            if is_a_string(f):
                 tf.add(f, add_base(f))
             else:
                 tf.add(f[0], add_base(f[1]))
