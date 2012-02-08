@@ -2,6 +2,7 @@
 #
 # Copyright (c) 2010-2012 Joshua Hughes <kivhift@gmail.com>
 #
+import contextlib
 import os
 import tarfile
 import tempfile
@@ -81,7 +82,7 @@ def tar_gz_from_config(target, source, env):
     if not hasattr(cfg, 'archive_config'):
         raise AttributeError('No archive_config in %s.' % s.path)
 
-    with tarfile.open(name = t, mode = 'w:gz') as tf:
+    with contextlib.closing(tarfile.open(name = t, mode = 'w:gz')) as tf:
         for f in cfg.archive_config:
             if type(f) in (str, unicode):
                 tf.add(f, add_base(f))
