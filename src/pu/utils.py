@@ -6,10 +6,12 @@ import glob
 import inspect
 import itertools
 import os
+import Queue
 import random
 import re
 import sys
 import textwrap
+import threading
 import time
 import types
 
@@ -577,6 +579,48 @@ def is_string_like(s):
         return True
     except:
         return False
+
+class ThreadWithExceptionStatus(threading.Thread):
+    '''
+    This is simply threading.Thread with a Queue.Queue (in .status) that
+    can be used to retrieve possible exceptions that occur whilst
+    run()ning.  None will be put in the Queue if there are no exceptions.
+    Otherwise, the exception information from sys.exc_info() is put in the
+    Queue.  One can also pass the extra keyword argument exception_callback
+    a function that takes no arguments that can be used to signal that an
+    exception has occurred.  Giving a timeout in seconds will cause the
+    thread execution to be delayed by that many seconds.  If delayed, the
+    thread can be canceled via cancel.  The timeout stuff is adapted from
+    _Timer() in the threading module in the standard library.
+    '''
+    def __init__(self, *a, **kwa):
+        if kwa.has_key('exception_callback'):
+            self.exc_callback = kwa.pop('exception_callback')
+        else:
+            self.exc_callback = lambda: None
+
+        if kwa.has_key('timeout'):
+            self.timeout = kwa.pop('timeout')
+        else:
+            self.timeout = 0.0
+
+        super(ThreadWithExceptionStatus, self).__init__(*a, **kwa)
+        self.status = Queue.Queue()
+        self.finished = threading.Event()
+
+    def cancel(self):
+        self.finished.set()
+
+    def run(self):
+        try:
+            self.finished.wait(self.timeout)
+            if not self.finished.is_set():
+                super(ThreadWithExceptionStatus, self).run()
+                self.status.put(None)
+            self.finished.set()
+        except:
+            self.status.put(sys.exc_info())
+            self.exc_callback()
 
 if __name__ == '__main__':
     print "--LOCAL--"
