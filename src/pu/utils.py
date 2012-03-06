@@ -344,10 +344,10 @@ def checked_property(name, description = None, default = None,
     return property(_get, _set, _del, description)
 
 def ranged_integer_checker(L, H):
-    if type(L) is not int or type(H) is not int or L >= H:
-        raise ValueError('Invalid integer range given: [%s, %s].' % (L, H))
+    if not is_an_integer(L) or not is_an_integer(H) or L >= H:
+        raise ValueError('Invalid integer range given: [%r, %r].' % (L, H))
     def _chk(val):
-        return type(val) is int and val >= L and val <= H
+        return is_an_integer(val) and val >= L and val <= H
     _chk.minimum = L
     _chk.maximum = H
     return _chk
@@ -571,6 +571,13 @@ def import_code(code, name, doc = None, add_to_sys = False):
     if add_to_sys: sys.modules[name] = module
     exec code in module.__dict__
     return module
+
+def is_an_integer(i):
+    '''
+    Returns True if the argument is a string, False otherwise.  See
+    is_a_string() for the inspiration.
+    '''
+    return isinstance(i, (int, long))
 
 def is_a_string(s):
     '''This is recipe 1.3, PCB 2nd ed.
