@@ -308,6 +308,16 @@ def note_to_self(msg = ''):
     print '[*] %s <%s:%s @ %d>' % (msg, os.path.basename(fi[0]),
         fi[2], fi[1])
 
+class CheckedObject(object):
+    '''
+    Subclass this class (and possibly use checked_property()) to only allow
+    an instance to set attributes that already exist.
+    '''
+    def __setattr__(self, name, value):
+        if not hasattr(self, name) and '_checked_properties' != name:
+            raise AttributeError('Setting new attributes not allowed.')
+        super(CheckedObject, self).__setattr__(name, value)
+
 def checked_property(name, description = None, default = None,
         is_valid = lambda val: True, xform = lambda val: val):
     def _check(s):
