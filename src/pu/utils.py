@@ -354,7 +354,7 @@ def ranged_integer_checker(L, H):
 
 def ranged_float_checker(L, H):
     if type(L) is not float or type(H) is not float or L >= H:
-        raise ValueError('Invalid float range given: [%s, %s].' % (L, H))
+        raise ValueError('Invalid float range given: [%r, %r].' % (L, H))
     def _chk(val):
         return type(val) is float and val >= L and val <= H
     _chk.minimum = L
