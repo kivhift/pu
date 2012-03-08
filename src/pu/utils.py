@@ -2,6 +2,7 @@
 #
 # Copyright (c) 2005-2012 Joshua Hughes <kivhift@gmail.com>
 #
+import datetime
 import glob
 import inspect
 import itertools
@@ -638,6 +639,76 @@ class ThreadWithExceptionStatus(threading.Thread):
         except:
             self.status.put(sys.exc_info())
             self.exc_callback()
+
+class LocalTimezoneInfo(datetime.tzinfo):
+    '''
+    This implementation is culled, with minor adjustments, from the
+    documentation for the datetime module (v2.7.2).  The example section
+    for the tzinfo base class contains this class and more.
+    '''
+    std_offset = datetime.timedelta(seconds = -time.timezone)
+    dst_offset = (datetime.timedelta(seconds = -time.altzone)
+        if time.daylight else std_offset)
+    delta_dst_std = dst_offset - std_offset
+    zero_delta = datetime.timedelta(0)
+
+    def __repr__(self):
+        return '%s.%s()' % (LocalTimezoneInfo.__module__,
+            LocalTimezoneInfo.__name__)
+
+    def utcoffset(self, dt):
+        if self._is_dst(dt):
+            return LocalTimezoneInfo.dst_offset
+        else:
+            return LocalTimezoneInfo.std_offset
+
+    def dst(self, dt):
+        if self._is_dst(dt):
+            return LocalTimezoneInfo.delta_dst_std
+        else:
+            return LocalTimezoneInfo.zero_delta
+
+    def tzname(self, dt):
+        return time.tzname[self._is_dst(dt)]
+
+    def _is_dst(self, dt):
+        return time.localtime(time.mktime((dt.year, dt.month, dt.day,
+            dt.hour, dt.minute, dt.second, dt.weekday(), 0, 0))).tm_isdst > 0
+
+class FixedOffsetTimezoneInfo(datetime.tzinfo):
+    '''
+    Similar to LocalTimezoneInfo above, this implementation is taken from
+    the tzinfo examples in the datetime module's documentation.
+    '''
+    zero_delta = datetime.timedelta(0)
+
+    def __init__(self, offset = 0, name = 'UTC'):
+        if not is_an_integer(offset):
+            raise ValueError('offset should be an integer.')
+
+        a_day = 24 * 60
+        if offset <= -a_day or offset >= a_day:
+            raise ValueError('abs(offset) is a day or more.')
+
+        if not is_a_string(name):
+            raise ValueError('name should be a string.')
+
+        self.__offset = datetime.timedelta(minutes = offset)
+        self.__name = name
+
+    def __repr__(self):
+        o = 24 * 60 * 60 * self.__offset.days + self.__offset.seconds
+        return '%s.%s(%d, %r)' % (FixedOffsetTimezoneInfo.__module__,
+            FixedOffsetTimezoneInfo.__name__, divmod(o, 60)[0], self.__name)
+
+    def utcoffset(self, dt):
+        return self.__offset
+
+    def tzname(self, dt):
+        return self.__name
+
+    def dst(self, dt):
+        return FixedOffsetTimezoneInfo.zero_delta
 
 if __name__ == '__main__':
     print "--LOCAL--"
