@@ -475,8 +475,9 @@ def version_string2number(vs):
 
     return (ma << 16) + (mi << 8) + pa
 
-def random_string(length):
+def random_bytes(length):
     return ''.join([chr(random.randint(0, 255)) for i in xrange(length)])
+random_string = random_bytes
 
 class DataContainer(dict):
     def __getattr__(self, attr):
