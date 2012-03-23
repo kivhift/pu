@@ -711,6 +711,23 @@ class FixedOffsetTimezoneInfo(datetime.tzinfo):
     def dst(self, dt):
         return FixedOffsetTimezoneInfo.zero_delta
 
+def byte_length(N):
+    '''
+    Return the number of bytes needed to represent the given non-negative
+    integer N.
+    '''
+    if not is_an_integer(N):
+        raise ValueError('N must be an integer: %r' % N)
+    if N < 0:
+        raise ValueError('N must be non-negative: %r' % N)
+
+    blen = 0
+    while N:
+        blen += 1
+        N >>= 8
+
+    return blen
+
 if __name__ == '__main__':
     print "--LOCAL--"
     print "\tDATE:", date_str()
