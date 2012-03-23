@@ -728,6 +728,21 @@ def byte_length(N):
 
     return blen
 
+def script_is_frozen():
+    '''Are we frozen via py2exe?'''
+    return hasattr(sys, 'frozen')
+
+def script_dir():
+    '''
+    Return the absolute path for the directory where the script resides
+    adjusting for whether or not it's frozen.  See the py2exe wiki for the
+    inspiration...
+    '''
+    fi = inspect.getframeinfo(inspect.currentframe().f_back)
+    fname = sys.executable if script_is_frozen() else fi.filename
+    return os.path.abspath(os.path.dirname(unicode(fname,
+        sys.getfilesystemencoding())))
+
 if __name__ == '__main__':
     print "--LOCAL--"
     print "\tDATE:", date_str()
