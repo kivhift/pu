@@ -334,13 +334,13 @@ def checked_property(name, description = None, default = None,
         _check(s)
         v = xform(val)
         if default == v:
-            if s._checked_properties.has_key(name):
+            if name in s._checked_properties:
                 del s._checked_properties[name]
         else:
             s._checked_properties[name] = v
     def _del(s):
         _check(s)
-        if s._checked_properties.has_key(name):
+        if name in s._checked_properties:
             del s._checked_properties[name]
     return property(_get, _set, _del, description)
 
@@ -481,7 +481,7 @@ random_string = random_bytes
 
 class DataContainer(dict):
     def __getattr__(self, attr):
-        if self.has_key(attr):
+        if attr in self:
             return self[attr]
         raise AttributeError(
             "'DataContainer' object has no attribute '%s'" % attr)
@@ -490,7 +490,7 @@ class DataContainer(dict):
         self[attr] = val
 
     def __delattr__(self, attr):
-        if not self.has_key(attr):
+        if not attr in self:
             raise AttributeError(
                 "'DataContainer' object has no attribute '%s'" % attr)
         del self[attr]
@@ -613,12 +613,12 @@ class ThreadWithExceptionStatus(threading.Thread):
     _Timer() in the threading module in the standard library.
     '''
     def __init__(self, *a, **kwa):
-        if kwa.has_key('exception_callback'):
+        if 'exception_callback' in kwa:
             self.exc_callback = kwa.pop('exception_callback')
         else:
             self.exc_callback = lambda: None
 
-        if kwa.has_key('timeout'):
+        if 'timeout' in kwa:
             self.timeout = kwa.pop('timeout')
         else:
             self.timeout = 0.0
