@@ -479,21 +479,97 @@ def random_bytes(length):
     return ''.join([chr(random.randint(0, 255)) for i in xrange(length)])
 random_string = random_bytes
 
-class DataContainer(dict):
-    def __getattr__(self, attr):
-        if attr in self:
-            return self[attr]
-        raise AttributeError(
-            "'DataContainer' object has no attribute '%s'" % attr)
+class DataContainer(object):
+    '''
+    This class can be used when one wants to easily pass a bunch of variables
+    around quickly.  The typical object-based attribute lookup is available
+    along with a mapping's key-based lookup; e.g., d.a and d['a'] are the same
+    thing.
+    '''
+    def __init__(self, *args, **kwargs):
+        L = len(args)
+        if L > 1:
+            raise TypeError(
+                'DataContainer expected at most 1 argument, got %d' % L)
+        self.update(*args, **kwargs)
 
-    def __setattr__(self, attr, val):
-        self[attr] = val
+    def __repr__(self):
+        kwre = re.compile('^[_a-zA-Z][_a-zA-Z0-9]*$')
+        keys = self.keys()
+        keys.sort()
+        kws, nonkws = [], []
+        for k in keys:
+            if kwre.match(k):
+                kws.append('%s = %r' % (k, getattr(self, k)))
+            else:
+                nonkws.append('%r : %r' % (k, getattr(self, k)))
+        if nonkws: kws.insert(0, '{%s}' % ', '.join(nonkws))
+        return 'DataContainer(%s)' % ', '.join(kws)
 
-    def __delattr__(self, attr):
-        if not attr in self:
-            raise AttributeError(
-                "'DataContainer' object has no attribute '%s'" % attr)
-        del self[attr]
+    def __contains__(self, item):
+        return item in self.__dict__
+
+    def __len__(self):
+        return len(self.__dict__)
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
+    def __delitem__(self, key):
+        delattr(self, key)
+
+    def __iter__(self):
+        return self.__dict__.__iter__()
+
+    def keys(self):
+        return self.__dict__.keys()
+
+    def values(self):
+        return self.__dict__.values()
+
+    def items(self):
+        return self.__dict__.items()
+
+    def get(self, key, default = None):
+        return self.__dict__.get(key, default)
+
+    def clear(self):
+        self.__dict__.clear()
+
+    def setdefault(self, key, default = None):
+        if hasattr(self, key): return getattr(self, key)
+        setattr(self, key, default)
+        return default
+
+    def iterkeys(self):
+        return self.__dict__.iterkeys()
+
+    def itervalues(self):
+        return self.__dict__.itervalues()
+
+    def iteritems(self):
+        return self.__dict__.iteritems()
+
+    def copy(self):
+        return self.__class__(self.__dict__.copy())
+
+    def update(self, *args, **kw):
+        L = len(args)
+        if L > 1:
+            raise TypeError('update expected at most 1 argument, got %d' % L)
+        if 1 == L:
+            other = args[0]
+            if hasattr(other, 'keys') and callable(other.keys):
+                for k in other:
+                    setattr(self, k, other[k])
+            else:
+                for k, v in other:
+                    setattr(self, k, v)
+        for k in kw:
+            setattr(self, k, kw[k])
 
 def fn_with_retries(fn, limit, wait, reset_fn, *args, **kwargs):
     def fwr(*args, **kwargs):
