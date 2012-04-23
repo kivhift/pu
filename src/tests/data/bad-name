@@ -1,0 +1,5 @@
+SS EQHelper 3
+^f eg_flt 8
+0x0.0p+0^i eg_int -1
+^b eg_str 18
+This is some text.

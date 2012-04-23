@@ -1,0 +1,5 @@
+SS EqHelper 3
+^i eg_int -1
+^b eg_str 18
+This is some text.^b eg_str 4
+This
