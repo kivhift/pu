@@ -6,6 +6,7 @@ import re
 from pu.utils import is_a_string, is_an_integer
 
 class SelfSerializerError(Exception): pass
+class SelfSerializerEmptyHeaderError(Exception): pass
 
 class SelfSerializer(object):
     '''
@@ -20,6 +21,9 @@ class SelfSerializer(object):
 
     _record_sep = '\x1eSS'
     _serializable_types = (int, long, str, list, dict, float)
+
+    def __init__(self):
+        super(SelfSerializer, self).__init__()
 
     def dump(self, fout, append = True):
         '''
@@ -48,7 +52,9 @@ class SelfSerializer(object):
         or a file-like object to be read from.
         '''
         f = open(fin, 'rb') if is_a_string(fin) else fin
-        H = f.readline().split()
+        ln = f.readline()
+        if not ln: raise SelfSerializerEmptyHeaderError('Empty header.')
+        H = ln.split()
         if (len(H) != 3) or (H[0] != SelfSerializer._record_sep):
             raise SelfSerializerError('Incorrect record separator.')
         class_name, indicated_len = H[1], int(H[2])
