@@ -230,22 +230,16 @@ def cterm_rows_cols():
     return int(rows_cols[0]), int(rows_cols[1])
 
 def get_user_info():
-    uinf = {
-        'EDITOR' : "",
-        'HOME' : "",
-        'SHELL' : ""
-        }
-
-    uinf['HOME'] = os.path.expanduser('~')
-    if uinf['HOME'] == '': return None
+    uinf = DataContainer(HOME = os.path.expanduser('~'))
+    if uinf.HOME == '': return None
 
     osn = os.name
     if 'posix' == osn:
-        uinf['EDITOR'] = os.getenv('EDITOR', 'vim')
-        uinf['SHELL'] = os.getenv('SHELL', 'bash')
+        uinf.update(EDITOR = os.getenv('EDITOR', 'vim'),
+            SHELL = os.getenv('SHELL', 'bash'))
     elif 'nt' == osn:
-        uinf['EDITOR'] = os.getenv('EDITOR', 'notepad.exe')
-        uinf['SHELL'] = os.getenv('SHELL', 'cmd.exe')
+        uinf.update(EDITOR = os.getenv('EDITOR', 'notepad.exe'),
+            SHELL = os.getenv('SHELL', 'cmd.exe'))
     else:
         # Not sure what to do here?..
         return None
@@ -323,6 +317,9 @@ class CheckedObject(object):
     Subclass this class (and possibly use checked_property()) to only allow
     an instance to set attributes that already exist.
     '''
+    def __init__(self):
+        super(CheckedObject, self).__init__()
+
     def __setattr__(self, name, value):
         if not hasattr(self, name) and '_checked_properties' != name:
             raise AttributeError('Setting new attributes not allowed.')
@@ -496,6 +493,8 @@ class DataContainer(object):
     thing.
     '''
     def __init__(self, *args, **kwargs):
+        super(DataContainer, self).__init__()
+
         L = len(args)
         if L > 1:
             raise TypeError(
@@ -513,7 +512,7 @@ class DataContainer(object):
             else:
                 nonkws.append('%r : %r' % (k, getattr(self, k)))
         if nonkws: kws.insert(0, '{%s}' % ', '.join(nonkws))
-        return 'DataContainer(%s)' % ', '.join(kws)
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(kws))
 
     def __contains__(self, item):
         return item in self.__dict__
