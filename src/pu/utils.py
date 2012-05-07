@@ -246,16 +246,18 @@ def get_user_info():
 
     return uinf
 
+default_pw_size = 15
 default_pw_chars = \
 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'
 
-def generate_password(sz = 15, chars = default_pw_chars):
+def generate_password(sz = default_pw_size, chars = default_pw_chars):
     '''Generate a random password using sz characters from chars.'''
     return ''.join([random.choice(chars) for i in xrange(sz)])
 
 pppw_Ls = '`123456qwertasdfgzxcvb~!@#$%^QWERTASDFGZXCVB'
 pppw_Rs = '7890-=yuiop[]\hjkl;\'nm,./&*()_+YUIOP{}|HJKL:"NM<>?'
-def generate_pingpong_password(sz = 15, lchars = pppw_Ls, rchars = pppw_Rs):
+def generate_pingpong_password(sz = default_pw_size,
+        lchars = pppw_Ls, rchars = pppw_Rs):
     '''
     Generate a random password using sz characters from lchars and rchars,
     ping-ponging between the two.
@@ -267,6 +269,20 @@ def generate_pingpong_password(sz = 15, lchars = pppw_Ls, rchars = pppw_Rs):
         pwc.append(random.choice(chars[idx[divmod(i, 2)[1]]]))
 
     return ''.join(pwc)
+
+def generate_L_password(sz = default_pw_size, chars = pppw_Ls):
+    '''
+    Generate a random, left-handed password using sz characters from chars.
+    '''
+
+    return generate_password(sz = sz, chars = chars)
+
+def generate_R_password(sz = default_pw_size, chars = pppw_Rs):
+    '''
+    Generate a random, right-handed password using sz characters from chars.
+    '''
+
+    return generate_password(sz = sz, chars = chars)
 
 def copy_file(From, To, clobber=False):
     """Copy file From to file To.  If To is a directory, then From is
