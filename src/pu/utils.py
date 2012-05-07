@@ -178,6 +178,14 @@ def utc_offset():
 
     return '%s%02d%02d' % (sign, h, m/60)
 
+def ISO_8601_time_stamp():
+    '''
+    Return the current time, with time zone designator, in ISO 8601 format.
+    '''
+    ts = time.gmtime()
+    return 'T'.join([date_str(sep = '-', stamp = ts),
+        time_str(sep = ':', stamp = ts)]) + utc_offset()
+
 def mkdir_and_cd(dir, mode=0755):
     """Make dir and cd into it.  Caller should handle exceptions."""
     os.mkdir(dir, mode)
