@@ -1,3 +1,9 @@
+#
+# Copyright (c) 2012 Joshua Hughes <kivhift@gmail.com>
+#
+import os
+import time
+
 from nose.tools import assert_raises
 
 import pu.utils
@@ -181,3 +187,27 @@ class TestDataContainer(object):
         assert 4 == d.b
         assert 5 == d.c
         assert 6 == d.d
+
+def test_date_str():
+    ds = pu.utils.date_str
+    date = '1970 01 02'
+    date_fld = date.split()
+    ts = time.strptime(date, '%Y %m %d')
+    assert date == ds(sep = ' ', stamp = ts)
+    assert os.sep.join(date_fld) == ds(stamp = ts)
+    assert '-'.join(date_fld[:1]) == ds('-', M = False, D = False, stamp = ts)
+    assert '-'.join(date_fld[:2]) == ds('-', D = False, stamp = ts)
+    assert '-'.join(date_fld[:3]) == ds('-', stamp = ts)
+    assert '-'.join(date_fld[::2]) == ds('-', M = False, stamp = ts)
+
+def test_time_str():
+    T = pu.utils.time_str
+    Time = '10 11 12'
+    time_fld = Time.split()
+    S = time.strptime(Time, '%H %M %S')
+    assert Time == T(sep = ' ', stamp = S)
+    assert os.sep.join(time_fld) == T(stamp = S)
+    assert '-'.join(time_fld[:1]) == T('-', M = False, S = False, stamp = S)
+    assert '-'.join(time_fld[:2]) == T('-', S = False, stamp = S)
+    assert '-'.join(time_fld[:3]) == T('-', stamp = S)
+    assert '-'.join(time_fld[::2]) == T('-', M = False, stamp = S)

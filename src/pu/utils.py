@@ -92,7 +92,7 @@ def memoize(fn):
         return cache[x]
     return memoized_fn
 
-def date_str(sep=os.sep, UTC=False, M=True, D=True, stamp = None):
+def date_str(sep = os.sep, UTC = False, M = True, D = True, stamp = None):
     """Return a string with the given, or current, date (UTC?)
     separated with sep."""
     d = stamp
@@ -102,11 +102,11 @@ def date_str(sep=os.sep, UTC=False, M=True, D=True, stamp = None):
         else:
             d = time.localtime()
 
-    date = '%d' % (d.tm_year)
-    if M: date += '%s%02d' % (sep, d.tm_mon)
-    if D: date += '%s%02d' % (sep, d.tm_mday)
+    date = [d.tm_year]
+    if M: date.append(d.tm_mon)
+    if D: date.append(d.tm_mday)
 
-    return date
+    return sep.join(map(lambda n: '%02d' % n, date))
 
 def y_str(UTC=False):
     """Returns a string with the current year (UTC?)"""
@@ -137,7 +137,7 @@ def hms_str(sep=os.sep, UTC=False):
     """Return a string with the current time (UTC?) separated with sep."""
     return time_str(sep=sep, UTC=UTC)
 
-def time_str(sep=os.sep, UTC=False, M=True, S=True, stamp = None):
+def time_str(sep = os.sep, UTC = False, M = True, S = True, stamp = None):
     """Return a string with the given, or current, time (UTC?)
     separated with sep."""
     t = stamp
@@ -147,16 +147,17 @@ def time_str(sep=os.sep, UTC=False, M=True, S=True, stamp = None):
         else:
             t = time.localtime()
 
-    tIme = '%02d' % (t.tm_hour)
-    if M: tIme += '%s%02d' % (sep, t.tm_min)
-    if S: tIme += '%s%02d' % (sep, t.tm_sec)
+    tIme = [t.tm_hour]
+    if M: tIme.append(t.tm_min)
+    if S: tIme.append(t.tm_sec)
 
-    return tIme
+    return sep.join(map(lambda n: '%02d' % n, tIme))
 
-def dt_str(sep=os.sep, UTC=False, stamp = None):
+def dt_str(sep = os.sep, UTC = False, stamp = None):
     """Return the given, or current, date+time (UTC?) separated with sep."""
-    return '%s%s%s' % (date_str(sep=sep, UTC=UTC, stamp = stamp), sep,
-            time_str(sep=sep, UTC=UTC, stamp = stamp))
+    return sep.join([
+        date_str(sep = sep, UTC = UTC, stamp = stamp),
+        time_str(sep = sep, UTC = UTC, stamp = stamp)])
 
 def utc_offset():
     """Return string for localtime's UTC offset.  Purloined from
@@ -818,28 +819,3 @@ def script_dir():
     fname = sys.executable if script_is_frozen() else fi.filename
     return os.path.abspath(os.path.dirname(unicode(fname,
         sys.getfilesystemencoding())))
-
-if __name__ == '__main__':
-    print "--LOCAL--"
-    print "\tDATE:", date_str()
-    print "\tTIME:", time_str()
-    print "--UTC (sep = ':')--"
-    print "\tDATE:", date_str(sep=':', UTC=True)
-    print "\tTIME:", time_str(sep=':', UTC=True)
-    print "Y:", y_str()
-    print "YM:", ym_str()
-    print "YMD:", ymd_str()
-    print "H:", h_str()
-    print "HM:", hm_str()
-    print "HMS:", hms_str()
-    print "DT:", dt_str()
-    print "DT (UTC, -):", dt_str(sep='-', UTC=True)
-    print "UTC offset:", utc_offset()
-    print "DT:", dt_str(sep=' '), utc_offset()
-    if os.name == 'posix': print "controlling terminal is:", os.ctermid()
-    print "cterm (rows, cols) =", cterm_rows_cols()
-    print "user info:", get_user_info()
-    print "generated password:", generate_password()
-    print "generated password(sz=30):", generate_password(30)
-
-    die(msg = 'Good bye! ' * 13, ecode = 0)
