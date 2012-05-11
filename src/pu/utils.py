@@ -247,6 +247,17 @@ def get_user_info():
 
     return uinf
 
+def get_app_dir(name):
+    '''
+    Return the conventional kitchen-drawer directory for the application named
+    name.  Return None if confused.
+    '''
+    osn = os.name
+    if 'posix' == osn:
+        return os.path.join(get_user_info().HOME, '.' + name)
+    elif 'nt' == osn:
+        return os.path.join(os.environ['APPDATA'], name)
+
 default_pw_size = 15
 default_pw_chars = \
 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'
