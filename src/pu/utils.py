@@ -14,6 +14,7 @@ import sys
 import textwrap
 import threading
 import time
+import traceback
 import types
 
 # Cache this for later.  It might be useful for restart() below.
@@ -840,3 +841,16 @@ def script_dir():
     fname = sys.executable if script_is_frozen() else fi.filename
     return os.path.abspath(os.path.dirname(unicode(fname,
         sys.getfilesystemencoding())))
+
+def condensed_traceback():
+    '''
+    Assuming that an exception has occured, this function returns a string that
+    represents a condensed version of the last exception to occur with the
+    following format:
+        <exception text> @ <file name>:<line number>
+    '''
+    eT, eV, eTB = sys.exc_info()
+    r = traceback.extract_tb(eTB)[-1]
+    return '%s @ %s:%d' % (
+        traceback.format_exception_only(eT, eV)[-1].strip(),
+        os.path.basename(r[0]), r[1])
