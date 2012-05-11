@@ -519,10 +519,8 @@ class DataContainer(object):
 
     def __repr__(self):
         kwre = re.compile('^[_a-zA-Z][_a-zA-Z0-9]*$')
-        keys = self.keys()
-        keys.sort()
         kws, nonkws = [], []
-        for k in keys:
+        for k in sorted(self.keys()):
             if kwre.match(k):
                 kws.append('%s = %r' % (k, getattr(self, k)))
             else:
