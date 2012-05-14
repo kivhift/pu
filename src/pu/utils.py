@@ -247,7 +247,7 @@ def get_user_info():
 
     return uinf
 
-def get_app_dir(name):
+def get_app_data_dir(name):
     '''
     Return the conventional kitchen-drawer directory for the application named
     name.  Return None if confused.
