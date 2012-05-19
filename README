@@ -1,4 +1,3 @@
-================
 Python Utilities
 ================
 
@@ -7,9 +6,8 @@ years.  YMMV.
 
 Installation
 ------------
-1. Clone the repository.
-2. Add the source directory to your PYTHONPATH.
-3. Enjoy!
+1. Run: setup.py install
+2. Enjoy!
 
 License
 -------
