@@ -671,7 +671,7 @@ def rotn_cycle(s, sep = '\n', numbered = True):
         r.append('%s%s' % ('%02d ' % i if numbered else '', rotn(s, i)))
     return sep.join(r)
 
-def import_code(code, name, doc = None, add_to_sys = False):
+def import_code(code, name, doc = None, add_to_sys = False, globals_ = None):
     ''' This function is inspired by recipe 16.2, PCB 2nd ed.
 
     Returns a new module object initialized by importing the given code.
@@ -681,7 +681,10 @@ def import_code(code, name, doc = None, add_to_sys = False):
     '''
     module = types.ModuleType(name, doc)
     if add_to_sys: sys.modules[name] = module
-    exec code in module.__dict__
+    if globals_ is not None:
+        exec code in globals_, module.__dict__
+    else:
+        exec code in module.__dict__
     return module
 
 def is_an_integer(i):
