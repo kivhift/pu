@@ -856,15 +856,23 @@ def script_dir():
     return os.path.abspath(os.path.dirname(unicode(fname,
         sys.getfilesystemencoding())))
 
-def condensed_traceback():
+def condensed_traceback(whole_stack = False):
     '''
     Assuming that an exception has occured, this function returns a string that
     represents a condensed version of the last exception to occur with the
     following format:
-        <exception text> @ <file name>:<line number>
+
+        <exception text> ~~> `<code>` in <func> @ <file name>:<line number>
+
+    If whole_stack is True, then the whole stack is added to the return value
+    by walking the stack from the most-current call to the least-current and
+    adding each call's information in the format above (minus the exception
+    text).
     '''
     eT, eV, eTB = sys.exc_info()
-    r = traceback.extract_tb(eTB)[-1]
-    return '%s @ %s:%d' % (
-        traceback.format_exception_only(eT, eV)[-1].strip(),
-        os.path.basename(r[0]), r[1])
+    ret = [traceback.format_exception_only(eT, eV)[-1].strip()]
+    for tb in reversed(traceback.extract_tb(eTB)):
+        ret.append('`%s` in %s @ %s:%d' % (tb[3], tb[2],
+            os.path.basename(tb[0]), tb[1]))
+        if not whole_stack: break
+    return ' ~~> '.join(ret)
