@@ -46,7 +46,7 @@ def setup_pyqt4_builders(env, builder_factory):
     env['BUILDERS']['PyLupdate4'] = builder_factory(
         action = pylupdate4_tool + ' -noobsolete -verbose $SOURCES -ts $TARGET')
     env['BUILDERS']['Lrelease'] = builder_factory(action = lrelease_tool
-        + ' -compress -nounfinished -removeidentical $SOURCES -qm $TARGET')
+        + ' -compress -nounfinished $SOURCES -qm $TARGET')
 
 def pyuic4(env, ui):
     '''
