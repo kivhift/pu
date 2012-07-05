@@ -876,3 +876,12 @@ def condensed_traceback(whole_stack = False):
             os.path.basename(tb[0]), tb[1]))
         if not whole_stack: break
     return ' ~~> '.join(ret)
+
+class SelfDeletingFile(file):
+    '''
+    This class extends the file built-in so that the underlying file is deleted
+    when the instance is deleted.
+    '''
+    def __del__(self):
+        if os.path.exists(self.name):
+            os.remove(self.name)
