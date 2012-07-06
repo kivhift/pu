@@ -885,3 +885,40 @@ class SelfDeletingFile(file):
     def __del__(self):
         if os.path.exists(self.name):
             os.remove(self.name)
+
+def multipart_form_data(boundary, files = [], fields = []):
+    '''
+    Use this function to obtain the body of a multipart/form-data POST per RFC
+    1867.  boundary is the boundary used in the body.  (It thus shouldn't
+    appear in the data.)  files is a sequence of 3-tuples of the form (name,
+    filename, data) with name and filename being the content-disposition
+    values.  Similarly, fields is a sequence of 2-tuples (name, value) with,
+    again, name being the content-disposition value.  The body is returned.
+
+    It should be noted that no attempt is made to guess at the content-type of
+    the files.  The content-type application/octet-stream is used along with
+    binary for the content-transfer-encoding.
+    '''
+    body = []
+    _b = body.append
+    boundary = '--' + boundary
+
+    for name, filename, data in files:
+        _b(boundary)
+        _b('content-disposition: form-data; name="%s"; filename="%s"' % (
+            name, filename))
+        _b('content-type: application/octet-stream')
+        _b('content-transfer-encoding: binary')
+        _b('')
+        _b(data)
+
+    for name, value in fields:
+        _b(boundary)
+        _b('content-disposition: form-data; name="%s"' % name)
+        _b('')
+        _b(value)
+
+    _b(boundary + '--')
+    _b('')
+
+    return '\r\n'.join(body)
