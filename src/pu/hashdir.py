@@ -1,5 +1,6 @@
-#!/usr/bin/python
-
+#
+# Copyright (c) 2011-2012 Joshua Hughes <kivhift@gmail.com>
+#
 import hashlib
 import io
 import os
