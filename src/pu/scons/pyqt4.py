@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #
 # Copyright (c) 2010-2012 Joshua Hughes <kivhift@gmail.com>
 #
