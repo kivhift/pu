@@ -87,3 +87,15 @@ def tar_gz_from_config(target, source, env):
                 tf.add(f, add_base(f))
             else:
                 tf.add(f[0], add_base(f[1]))
+
+def always_build(dependency, target, prev_ni):
+    """Decide to always build.
+
+    If this function is feed to SCons's ``Decider()``, then all targets will
+    be built each time that ``scons`` is executed.  This can be used per
+    target by cloning environments and feeding this function to the
+    per-environment ``Decider()``.
+
+    """
+
+    return True
