@@ -10,6 +10,7 @@ import os
 import Queue
 import random
 import re
+import shutil
 import subprocess
 import sys
 import textwrap
@@ -274,9 +275,7 @@ def generate_R_password(sz = default_pw_size, chars = pppw_Rs):
     return generate_password(sz = sz, chars = chars)
 
 def copy_file(From, To, clobber=False):
-    """Copy file From to file To.  If To is a directory, then From is
-copied to To/From.  Raise exception if there's a problem"""
-
+    """Copy file `From` to file/directory `To` and `clobber` `To` if wanted."""
     if not os.path.isfile(From):
         raise TypeError, From + ' is not a regular file.'
 
@@ -286,22 +285,7 @@ copied to To/From.  Raise exception if there's a problem"""
     if os.path.exists(real_to) and not clobber:
             raise IOError, real_to + ' exists and not clobbering.'
 
-    blksize = 1024 * 8
-    fromfile = open(From, 'rb')
-    try:
-        tofile = open(real_to, 'wb')
-    except:
-        fromfile.close()
-        raise
-
-    try:
-        while 1:
-            chunk = fromfile.read(blksize)
-            if not chunk: break
-            tofile.write(chunk)
-    finally:
-        fromfile.close()
-        tofile.close()
+    shutil.copyfile(From, real_to)
 
 def lineno():
     return inspect.currentframe().f_back.f_lineno
