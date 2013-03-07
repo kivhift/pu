@@ -5,6 +5,7 @@ import datetime
 import glob
 import inspect
 import itertools
+import math
 import os
 import Queue
 import random
@@ -956,3 +957,22 @@ def path_dirs(key = 'PATH'):
     """Return a list of directories given by os.environ[`key`]."""
 
     return os.environ[key].split(os.pathsep)
+
+def number_width(x, base = 10):
+    """Return the width of `x` written in base `base`.
+
+    Both `x` and `base` should be integers and `base` must be two or greater.
+    If `x` is negative, the minus sign is accounted for in the returned width.
+    """
+    if not is_an_integer(x): raise ValueError('Argument must be an integer.')
+    if not is_an_integer(base): raise ValueError('Base must be an integer.')
+    if base < 2: raise ValueError('Base must be at least two.')
+
+    w = 1
+    if 0 == x: return w
+    if x < 0:
+        w += 1
+        x = abs(x)
+    w += int(math.floor(math.log10(x) / math.log10(base)))
+
+    return w
