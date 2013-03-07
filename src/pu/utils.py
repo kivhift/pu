@@ -76,13 +76,11 @@ def sandwich_wrap(msg, wrapper = '-', width = 0):
         return textwrap.fill(msg, width = mw, replace_whitespace = False)
 
 def wrapped_paragraphs(lines, w):
-    '''
-    Given lines and width w, iteratively return the paragraphs with the lines
-    wrapped to the width.
-    '''
+    """Yield paragraphs from `lines`, each wrapped to width `w`."""
+    wrapper = textwrap.TextWrapper(width = w)
     for sep, li in itertools.groupby(lines.splitlines(True), key = str.isspace):
         if not sep:
-            yield textwrap.fill(''.join(l.lstrip() for l in li), w)
+            yield wrapper.fill(''.join(l.lstrip() for l in li))
 
 # ActiveState Recipe # 577219
 # http://code.activestate.com/recipes/577219-minimalistic-memoization/
