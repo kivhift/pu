@@ -860,10 +860,10 @@ def script_dir():
     return os.path.abspath(os.path.dirname(unicode(fname,
         sys.getfilesystemencoding())))
 
-def condensed_traceback(whole_stack = False):
+def condensed_traceback(whole_stack = False, sep = ' ~~> '):
     '''
-    Assuming that an exception has occured, this function returns a string that
-    represents a condensed version of the last exception to occur with the
+    Assuming that an exception has occurred, this function returns a string
+    that represents a condensed version of the last exception to occur with the
     following format:
 
         <exception text> ~~> `<code>` in <func> @ <file name>:<line number>
@@ -879,7 +879,7 @@ def condensed_traceback(whole_stack = False):
         ret.append('`%s` in %s @ %s:%d' % (tb[3], tb[2],
             os.path.basename(tb[0]), tb[1]))
         if not whole_stack: break
-    return ' ~~> '.join(ret)
+    return sep.join(ret)
 
 class SelfDeletingFile(file):
     '''
