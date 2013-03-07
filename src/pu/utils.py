@@ -951,3 +951,8 @@ def lines_without_comments(infile, rstrip = True, newline = '\n'):
             else:
                 noncmt = m.group('noncmt')
                 yield (noncmt.rstrip() if rstrip else noncmt) + newline
+
+def path_dirs(key = 'PATH'):
+    """Return a list of directories given by os.environ[`key`]."""
+
+    return os.environ[key].split(os.pathsep)
