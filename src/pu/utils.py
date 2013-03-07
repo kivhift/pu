@@ -931,3 +931,23 @@ def multipart_form_data(boundary, files = [], fields = []):
     _b('')
 
     return '\r\n'.join(body)
+
+def lines_without_comments(infile, rstrip = True, newline = '\n'):
+    """
+    Take `infile` and generate its lines with comments stripped.
+
+    Lines that have a #-style, single-line comment have the comment removed and
+    then have right-hand whitespace removed if `rstrip` is True.  `newline` is
+    appended to comment-stripped lines.  Non-comment-containing lines aren't
+    processed and pass through as-is.
+    """
+    comment_re = re.compile(r'(?P<noncmt>^.*)#.*$')
+
+    with (open(infile, 'rb') if is_a_string(infile) else infile) as inf:
+        for line in inf:
+            m = comment_re.match(line)
+            if m is None:
+                yield line
+            else:
+                noncmt = m.group('noncmt')
+                yield (noncmt.rstrip() if rstrip else noncmt) + newline
