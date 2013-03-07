@@ -976,3 +976,83 @@ def number_width(x, base = 10):
     w += int(math.floor(math.log10(x) / math.log10(base)))
 
     return w
+
+def buffer_str(buf):
+    """Return a string containing a byte-wise representation of `buf`.
+
+    The buffer is broken down into 16-byte subarrays which are represented as
+    hex offsets along with hex bytes.
+
+    """
+    L = len(buf)
+    off_fmt = '%%0%dx:' % number_width(L, 16)
+    ret = []
+    ra = ret.append
+    for i in xrange(L):
+        if 0 == (i % 16):
+            if i: ra('\n')
+            ra(off_fmt % i)
+        ra(' %02x' % ord(buf[i]))
+
+    return ''.join(ret)
+
+def buffer_diff(buf0, buf1):
+    r"""Return a string containing the diff of `buf0` and `buf1`.
+
+    For differing subarrays at 16-byte offsets, a representation of the diff is
+    given in the following format:
+
+        <hex offset>:<`buf0` hex bytes>
+        <space>:<`buf1` hex bytes>
+
+    Bytes for `buf0` are printed as-is and bytes for `buf1` are given as ""
+    where they're the same as `buf0` and as-is if they differ.  Nonexistent
+    bytes are represented as spaces.  An example for '\x00\x01\x02' and
+    '\x00\x10\x02\x03' is perhaps a bit clearer:
+
+        0: 00 01 02
+         : "" 10 "" 03
+
+    """
+    m = min(len(buf0), len(buf1))
+    M = max(len(buf0), len(buf1))
+    if 0 == m: m = M
+    W = number_width(M, 16)
+    line_fmt = '%%0%dx:%%s\n%s:%%s' % (W, ' ' * W)
+    byte_fmt = ' %02x'
+    ret = []
+    ar = ret.append
+    i = 0
+    for i in xrange(0, m, 16):
+        i16 = i + 16
+        a = buf0[i:i16]
+        b = buf1[i:i16]
+        if a != b:
+            arep = []
+            brep = []
+            j = -1
+            for j in xrange(min(len(a), len(b))):
+                aj = a[j]
+                bj = b[j]
+                if aj == bj:
+                    arep.append(byte_fmt % ord(aj))
+                    brep.append(' ""')
+                else:
+                    arep.append(byte_fmt % ord(aj))
+                    brep.append(byte_fmt % ord(bj))
+            j += 1
+            for k in xrange(j, len(a)):
+                arep.append(byte_fmt % ord(a[k]))
+            for k in xrange(j, len(b)):
+                brep.append(byte_fmt % ord(b[k]))
+
+            ar(line_fmt % (i, ''.join(arep), ''.join(brep)))
+    i16 = i + 16
+    for j in xrange(i16, len(buf0), 16):
+        ar(line_fmt % (j, ''.join(
+            [byte_fmt % ord(x) for x in buf0[j : j + 16]]), ''))
+    for j in xrange(i16, len(buf1), 16):
+        ar(line_fmt % (j, '', ''.join(
+            [byte_fmt % ord(x) for x in buf1[j : j + 16]])))
+
+    return '\n'.join(ret)
