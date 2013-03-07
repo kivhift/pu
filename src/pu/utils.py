@@ -881,6 +881,11 @@ def condensed_traceback(whole_stack = False, sep = ' ~~> '):
         if not whole_stack: break
     return sep.join(ret)
 
+def formatted_exception():
+    """Return a formatted version of the current exception."""
+
+    return traceback.format_exception_only(*sys.exc_info()[:2])[-1].strip()
+
 class SelfDeletingFile(file):
     '''
     This class extends the file built-in so that the underlying file is deleted
