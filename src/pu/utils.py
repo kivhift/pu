@@ -9,6 +9,7 @@ import os
 import Queue
 import random
 import re
+import subprocess
 import sys
 import textwrap
 import threading
@@ -245,6 +246,10 @@ def get_user_info():
         return None
 
     return uinf
+
+def edit_file(editee):
+    """Edit `editee` using :func:`get_user_info`.EDITOR."""
+    subprocess.call([get_user_info().EDITOR, editee])
 
 def get_app_data_dir(name):
     '''
