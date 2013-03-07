@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2005-2012 Joshua Hughes <kivhift@gmail.com>
+# Copyright (c) 2005-2013 Joshua Hughes <kivhift@gmail.com>
 #
 import datetime
 import glob
