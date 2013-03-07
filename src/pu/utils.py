@@ -348,6 +348,29 @@ def ranged_integer_checker(L, H):
     _chk.maximum = H
     return _chk
 
+class IntegerRange(object):
+    """Wrap :func:`ranged_integer_checker` for ``in``, ``str``, etc.
+    """
+    def __init__(self, L, H):
+        self._check = ranged_integer_checker(L, H)
+
+    def __contains__(self, val):
+        return self._check(val)
+
+    def __len__(self):
+        chk = self._check
+        L, H = chk.minimum, chk.maximum
+        return H - L + 1
+
+    def __str__(self):
+        chk = self._check
+        return '[{}, {}]'.format(chk.minimum, chk.maximum)
+
+    def __repr__(self):
+        chk = self._check
+        return '{}({}, {})'.format(self.__class__.__name__,
+            chk.minimum, chk.maximum)
+
 def ranged_float_checker(L, H):
     if type(L) is not float or type(H) is not float or L >= H:
         raise ValueError('Invalid float range given: [%r, %r].' % (L, H))
