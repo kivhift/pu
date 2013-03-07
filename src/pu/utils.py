@@ -197,37 +197,11 @@ def mkdirs_and_cd(path, mode=0755):
     os.chdir(path)
 
 def cterm_rows_cols():
-    """Returns the rows and columns of the controlling terminal."""
-    # This function is adapted from code found here:
-    # http://pdos.csail.mit.edu/~cblake/cls/cls.py
-    # Since it uses fcntl and termios, it will only work under a Unix-type
-    # OS.
-    default_rc = (25, 80)
-    try:
-        if not sys.stdout.isatty():
-            return default_rc
-    except:
-        return default_rc
+    """Return the tuple ``(rows, columns)`` for the controlling terminal."""
+    import pu.terminal
+    return pu.terminal.Terminal().rows_and_cols()
 
-    rows_cols = None
-    try:
-        import fcntl
-        import struct
-        import termios
-        fd = os.open(os.ctermid(), os.O_RDONLY)
-        rows_cols = struct.unpack('hh',
-                fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
-        os.close(fd)
-    except:
-        rows_cols = None
 
-    if not rows_cols:
-        try:
-            rows_cols = (os.env['LINES'], os.env['COLUMNS'])
-        except:
-            rows_cols = default_rc
-
-    return int(rows_cols[0]), int(rows_cols[1])
 
 def get_user_info():
     uinf = DataContainer(HOME = os.path.expanduser('~'))
