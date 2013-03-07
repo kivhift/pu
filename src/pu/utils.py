@@ -685,11 +685,11 @@ def import_code(code, name, doc = None, add_to_sys = False, globals_ = None):
     file-like object or a compiled code object.
     '''
     module = types.ModuleType(name, doc)
-    if add_to_sys: sys.modules[name] = module
     if globals_ is not None:
         exec code in globals_, module.__dict__
     else:
         exec code in module.__dict__
+    if add_to_sys: sys.modules[name] = module
     return module
 
 def is_an_integer(i):
