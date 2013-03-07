@@ -42,10 +42,8 @@ def die(msg='', func=None, ecode=1, *args):
     """Print msg, call func and sys.exit with ecode.
 
 Use func to print help, clean up, etc."""
-    if len(args) > 0:
-        msg += ': ' + ' '.join(map(str, args))
 
-    if msg: print '\n', sandwich_wrap(msg)
+    warn(msg, *args)
     if func: func()
     sys.exit(ecode)
 
