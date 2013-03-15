@@ -1115,7 +1115,8 @@ def buffer_str(buf):
     """Return a string containing a byte-wise representation of `buf`.
 
     The buffer is broken down into 16-byte subarrays which are represented as
-    hex offsets along with hex bytes.
+    hex offsets along with hex bytes.  Each subarray is also shown as ASCII if
+    applicable.
 
     """
     L = len(buf)
@@ -1123,10 +1124,16 @@ def buffer_str(buf):
     ret = []
     ra = ret.append
     for i in xrange(L):
+        b = buf[i]
+        bord = ord(b)
         if 0 == (i % 16):
-            if i: ra('\n')
+            if i: ra('  %s\n' % ''.join(suf))
+            suf = []
+            sufa = suf.append
             ra(off_fmt % i)
-        ra(' %02x' % ord(buf[i]))
+        ra(' %02x' % bord)
+        sufa('.' if bord < 0x20 or bord > 0x7e else b)
+    if suf: ra('%s  %s\n' % ('   ' * (16 - len(suf)), ''.join(suf)))
 
     return ''.join(ret)
 
