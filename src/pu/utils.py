@@ -18,6 +18,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import textwrap
 import threading
 import time
@@ -1206,3 +1207,26 @@ def hash_file(infile, algo = 'sha1'):
     with open(infile, 'rb') as f:
         hsh.update(f.read())
     return hsh.digest()
+
+def repl_edit(filename = None):
+    """Use EDITOR to edit a file that's subsequently exec'd by the REPL.
+
+    If `filename` is None, then a temporary file is used for editing and then
+    deleted after the function is finished.  Otherwise, the given file is used
+    for editing without a post-exec deletion.  If the file is unchanged after
+    editing, the exec isn't performed.
+
+    Inspired by: http://philipbjorge.github.com/EditREPL/
+
+    """
+
+    editee = filename or tempfile.NamedTemporaryFile(suffix = '.py').name
+    try:
+        orig_hash = '' if not os.path.exists(editee) else hash_file(editee)
+        edit_file(editee)
+        curr_hash = '' if not os.path.exists(editee) else hash_file(editee)
+        if orig_hash != curr_hash:
+            ofrm = inspect.getouterframes(inspect.currentframe())[-1][0]
+            execfile(editee, ofrm.f_globals, ofrm.f_locals)
+    finally:
+        if filename is None and os.path.exists(editee): os.remove(editee)
