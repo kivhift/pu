@@ -7,6 +7,7 @@ A collection of utility code.
 
 import datetime
 import glob
+import hashlib
 import inspect
 import itertools
 import math
@@ -1197,3 +1198,11 @@ def buffer_diff(buf0, buf1):
             [byte_fmt % ord(x) for x in buf1[j : j + 16]])))
 
     return '\n'.join(ret)
+
+def hash_file(infile, algo = 'sha1'):
+    """Return digest of `infile` via hashlib's `algo`."""
+
+    hsh = getattr(hashlib, algo)()
+    with open(infile, 'rb') as f:
+        hsh.update(f.read())
+    return hsh.digest()
