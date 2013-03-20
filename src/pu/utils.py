@@ -1230,3 +1230,38 @@ def repl_edit(filename = None):
             execfile(editee, ofrm.f_globals, ofrm.f_locals)
     finally:
         if filename is None and os.path.exists(editee): os.remove(editee)
+
+def rst2html(rst_file, html_file = None, style_file = None, view = False):
+    """Convert RST to HTML.
+
+    The input file `rst_file` is processed with
+    :meth:`docutils.core.Publisher.publish` and output to HTML.  If `html_file`
+    is None, then the output file name is derived from `rst_file` by appending
+    ``.html`` to it.  If given, `html_file` is used for the output file name.
+    Also, if given, `style_file` is used as the generated HTML's style sheet.
+
+    The generated HTML file is opened via :mod:`webbrowser` if `view` is
+    True.
+
+    """
+    import webbrowser
+    import docutils.core
+
+    html_out = os.path.abspath(html_file or (rst_file + '.html'))
+
+    pub = docutils.core.Publisher()
+    pub.set_components(reader_name = 'standalone',
+        parser_name = 'restructuredtext', writer_name = 'html')
+    # Use .get_settings() so as to not have the command-line arguments
+    # processed when calling .publish().  It has to be called after
+    # .set_components() but before .set_source() and .set_destination() or
+    # else bad things happen.
+    pub.get_settings()
+    pub.set_source(source_path = rst_file)
+    pub.set_destination(destination_path = html_out)
+    if style_file is not None:
+        pub.settings.stylesheet_path = style_file
+    pub.publish()
+
+    if view:
+        webbrowser.open_new_tab('file:///' + html_out.replace('\\', '/'))
