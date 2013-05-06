@@ -799,7 +799,7 @@ def import_code(code, name, doc = None, add_to_sys = False, globals_ = None):
     file-like object or a compiled code object.  If given, `globals` is used
     for the context for exec and, thus, should be a dictionary.
 
-    This function is inspired by recipe 16.2, PCB 2nd ed.
+    This function is inspired by recipe 16.2, PC 2nd ed.
 
     """
     module = types.ModuleType(name, doc)
@@ -821,7 +821,7 @@ def is_an_integer(i):
 def is_a_string(s):
     """Return True if the argument is a string, False otherwise.
 
-    This is PCB2e:1.3.
+    This is part of PC2e:1.3.
 
     """
     return isinstance(s, basestring)
@@ -829,7 +829,7 @@ def is_a_string(s):
 def is_string_like(s):
     """Return True if the argument walks like a string, False otherwise.
 
-    This is PCB2e:1.4.
+    This is part of PC2e:1.3.
 
     """
     try:
