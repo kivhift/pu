@@ -1,9 +1,9 @@
 #
-# Copyright (c) 2012 Joshua Hughes <kivhift@gmail.com>
+# Copyright (c) 2012-2013 Joshua Hughes <kivhift@gmail.com>
 #
 import re
 
-from pu.utils import is_a_string, is_an_integer
+from pu.utils import is_a_string, is_an_integer, DataContainer
 
 class SelfSerializerError(Exception): pass
 class SelfSerializerEmptyHeaderError(Exception): pass
@@ -142,3 +142,7 @@ class SelfSerializer(object):
             return name, tmp
         elif 'f' == type_:
             return name, float.fromhex(f.read(intval))
+
+class SelfSerializingDataContainer(DataContainer, SelfSerializer):
+    def __init__(self, *args, **kwargs):
+        super(SelfSerializingDataContainer, self).__init__(*args, **kwargs)
