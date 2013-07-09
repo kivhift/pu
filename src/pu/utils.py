@@ -684,6 +684,12 @@ class DataContainer(object):
         setattr(self, key, default)
         return default
 
+    def pop(self, *args, **kwargs):
+        return self.__dict__.pop(*args, **kwargs)
+
+    def popitem(self):
+        return self.__dict__.popitem()
+
     def iterkeys(self):
         return self.__dict__.iterkeys()
 
