@@ -57,6 +57,7 @@ class Enumeration(object):
         sa = super(Enumeration, self).__setattr__
         sa('_super_setattr', sa)
         sa('name', name)
+        sa('_names', set())
         sa('_next_val', 0)
         sa('_descriptions', {})
         sa('_values', set())
@@ -90,6 +91,7 @@ class Enumeration(object):
 
         sa = self._super_setattr
         sa(name, i)
+        self._names.add(name)
         self._values.add(i)
         sa('_next_val', i + 1)
         if desc:
@@ -109,6 +111,11 @@ class Enumeration(object):
     def freeze(self):
         """Freeze the enumeration to disallow changes."""
         self._super_setattr('frozen', True)
+
+    @property
+    def names(self):
+        """The enumee names."""
+        return sorted(list(self._names))
 
     @property
     def values(self):
