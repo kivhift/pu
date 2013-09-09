@@ -5,6 +5,7 @@
 A collection of utility code.
 """
 
+import atexit
 import datetime
 import glob
 import hashlib
@@ -764,7 +765,7 @@ def glimb(pattern, base = '.', all_matches = False):
 def rotn(s, n = 13):
     """Return the Caesar cipher of `s`.
 
-    Of shift other than the default of 13 can be specified via `n`.  Only
+    A shift other than the default of 13 can be specified via `n`.  Only
     characters where .isalpha() is True are shifted.  The rest pass through to
     the output.
 
@@ -1271,3 +1272,24 @@ def rst2html(rst_file, html_file = None, style_file = None, view = False):
 
     if view:
         webbrowser.open_new_tab('file:///' + html_out.replace('\\', '/'))
+
+def delete_if_exists(filename):
+    """Delete `filename` if it exists."""
+    if os.path.exists(filename): os.remove(filename)
+
+def tempfile_name(suffix = '', prefix = 'tmp', dir = None,
+        delete_at_exit = True):
+    """Retrieve a temporary file name.
+
+    Return the temporary file name obtained via `tempfile.mkstemp`.  All
+    arguments except `delete_at_exit` are passed through to `mkstemp`.  If
+    `delete_at_exit` is True, then a function is registered with `atexit` to
+    delete the file if it exists.
+
+    """
+    fd, name = tempfile.mkstemp(suffix, prefix, dir)
+    os.close(fd)
+
+    if delete_at_exit: atexit.register(delete_if_exists, name)
+
+    return name
