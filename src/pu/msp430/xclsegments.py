@@ -110,6 +110,25 @@ class Segment(object):
         return self.__class__(A.start_addr, max(A.end_addr, B.end_addr),
             fmt(self.name, other.name)),
 
+class SegmentList(list):
+    """Make specifying adjacent segments easy."""
+    def append_segment(self, name, start = None, size = 0x200, type_ = None):
+        """Append and return a :class:`Segment` named `name`.
+
+        Unless `start` is specified, the appended segment will use the current
+        end segment's end address to derive its start address; i.e., the next
+        available address.  The segment size and type can be specified with
+        `size` and `type_`, respectively.  If not specified, they default to
+        0x200 and ``None``.
+
+        """
+        begin = start or (self[-1].end_addr + 1)
+        self.append(
+            Segment(begin, begin + size - 1, name, type_ or 'CONST')
+        )
+
+        return self[-1]
+
 def segment_definitions(seg_file):
     """
     Load `seg_file` and return a module with the contents.
