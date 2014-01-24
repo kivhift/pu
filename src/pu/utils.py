@@ -6,6 +6,7 @@ A collection of utility code.
 """
 
 import atexit
+import cStringIO
 import datetime
 import glob
 import hashlib
@@ -25,6 +26,7 @@ import threading
 import time
 import traceback
 import types
+import xml.dom.minidom
 
 # Cache for possible restart() use.
 cwd_at_import = os.getcwd()
@@ -1293,3 +1295,23 @@ def tempfile_name(suffix = '', prefix = 'tmp', dir = None,
     if delete_at_exit: atexit.register(delete_if_exists, name)
 
     return name
+
+def pretty_xml(xml_in, xml_out = None, indent = '  ', newln = '\n'):
+    """Output a more human-readable version of the given XML.
+
+    `xml_in` can be either a file name or a file-like object.  `xml_out`, if
+    given, should have a file-like ``write`` method.  `indent` can be used to
+    specify the sub-element indentation.  `newln` specifies the string emitted
+    at the end of lines.
+
+    `xml_out` is returned, if specified.  If not, a newly-created ``StringIO``
+    is returned with the resulting XML written to it.
+
+    Please be aware of whitespace expansion.  If the XML's already pretty,
+    then this function will cause its indentation to grow into blank lines due
+    to the whitespace text nodes.
+    """
+    xi = xml.dom.minidom.parse(xml_in)
+    xo = xml_out or cStringIO.StringIO()
+    xi.writexml(xo, indent = '', addindent = indent, newl = newln)
+    return xml_out or xo
