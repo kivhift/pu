@@ -179,10 +179,9 @@ def segment_definitions_to_xcl(seg_file, xcl_file):
     sd = segment_definitions(seg_file)
     with open(xcl_file, 'wb') as f:
         f.write('''\
--Z(DATA)DATA16_I,DATA16_Z,DATA16_N,HEAP+_HEAP_SIZE={0}
+-Z(DATA)DATA16_I,DATA16_Z,DATA16_N={0}
 -Z(DATA)CSTACK+_STACK_SIZE#
 -Z(CONST)DATA16_C,DATA16_ID,DIFUNCT={1}
--Z(CONST)DATA20_C,DATA20_ID={1}
 -Z(CODE)CSTART,ISR_CODE={1}
 -P(CODE)CODE={1}
 -Z(CODE)RESET=fffe-ffff
