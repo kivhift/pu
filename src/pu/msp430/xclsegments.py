@@ -185,6 +185,7 @@ def segment_definitions_to_xcl(seg_file, xcl_file):
 -Z(CONST)DATA20_C,DATA20_ID={1}
 -Z(CODE)CSTART,ISR_CODE={1}
 -P(CODE)CODE={1}
+-Z(CODE)RESET=fffe-ffff
 '''.format('{0.start_addr:x}-{0.end_addr:x}'.format(sd.ram),
             '{0.start_addr:x}-{0.end_addr:x}'.format(sd.general_nv)))
         for seg in sd.segments:
