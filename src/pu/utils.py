@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2005-2013 Joshua Hughes <kivhift@gmail.com>
+# Copyright (c) 2005-2014 Joshua Hughes <kivhift@gmail.com>
 #
 """
 A collection of utility code.
@@ -962,6 +962,24 @@ class FixedOffsetTimezoneInfo(datetime.tzinfo):
     def dst(self, dt):
         return FixedOffsetTimezoneInfo.zero_delta
 
+def bit_width(N):
+    """Return the number of bits needed to represent `N`.
+
+    `N` should be non-negative.
+
+    """
+    if not is_an_integer(N):
+        raise ValueError('N must be an integer: %r' % N)
+    if N < 0:
+        raise ValueError('N must be non-negative: %r' % N)
+
+    bw = 0
+    while N:
+        bw += 1
+        N >>= 1
+
+    return bw
+
 def byte_length(N):
     """Return the number of bytes needed to represent `N`.
 
@@ -1107,6 +1125,8 @@ def number_width(x, base = 10):
 
     Both `x` and `base` should be integers and `base` must be two or greater.
     If `x` is negative, the minus sign is accounted for in the returned width.
+    Caveat emptor: this function uses float-based functions from the math
+    module.
 
     """
     if not is_an_integer(x): raise ValueError('Argument must be an integer.')
