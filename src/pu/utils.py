@@ -1154,6 +1154,7 @@ def buffer_str(buf):
     off_fmt = '%%0%dx:' % number_width(L, 16)
     ret = []
     ra = ret.append
+    suf = []
     for i in xrange(L):
         b = buf[i]
         bord = ord(b)
