@@ -1,6 +1,7 @@
 #
-# Copyright (c) 2006-2012 Joshua Hughes <kivhift@gmail.com>
+# Copyright (c) 2006-2014 Joshua Hughes <kivhift@gmail.com>
 #
+from __future__ import print_function
 import os
 import sys
 
@@ -207,8 +208,8 @@ if 'nt' == os.name:
                 ('dwMaximumWindowSize', ctypes.wintypes.COORD)
                 ]
     except ImportError:
-        print >> sys.stderr, \
-            "Couldn't find the ctypes module. Sorry, no color."
+        print("Couldn't find the ctypes module. Sorry, no color.",
+            file = sys.stderr)
 
 class _Win32Term(_TerminalBase):
     def __init__(self):
@@ -218,6 +219,7 @@ class _Win32Term(_TerminalBase):
         STDIN_HANDLE = -10
         STDOUT_HANDLE = -11
         STDERR_HANDLE = -12
+        INVALID_HANDLE_VALUE = -1
         # foreground color and intensity
         FG_B = 0x01
         FG_G = 0x02
@@ -233,7 +235,7 @@ class _Win32Term(_TerminalBase):
 
         self.is_term = ('nt' == os.name
                 and self.so.isatty()
-                and globals().has_key('ctypes'))
+                and 'ctypes' in globals())
 
         self.__seq = {}
         self.__seq["normal"]       = 0
@@ -252,7 +254,7 @@ class _Win32Term(_TerminalBase):
         self.__seq["fg_magenta"]   = FG_R | FG_B
         self.__seq["fg_cyan"]      = FG_G | FG_B
         self.__seq["fg_white"]     = FG_R | FG_G | FG_B
-        self.__seq["fg_default"]   = 0
+        self.__seq["fg_default"]   = FG_R | FG_G | FG_B
         self.__seq["bg_bold"]      = BG_I
         self.__seq["bg_black"]     = 0
         self.__seq["bg_red"]       = BG_R
@@ -263,71 +265,91 @@ class _Win32Term(_TerminalBase):
         self.__seq["bg_cyan"]      = BG_G | BG_B
         self.__seq["bg_white"]     = BG_R | BG_G | BG_B
         self.__seq["bg_default"]   = 0
-        self.__seq["default"]      = 0x07
+        self.__seq["default"]      = FG_R | FG_G | FG_B
 
         if self.is_term:
-            self.soh = ctypes.windll.kernel32.GetStdHandle(STDOUT_HANDLE)
+            k32 = ctypes.windll.kernel32
+            self.soh = soh = k32.GetStdHandle(STDOUT_HANDLE)
+            if not soh or (INVALID_HANDLE_VALUE == soh):
+                raise RuntimeError('Unable to get standard handle.')
 
             csbi = CONSOLE_SCREEN_BUFFER_INFO()
-            ctypes.windll.kernel32.GetConsoleScreenBufferInfo(
-                self.soh, ctypes.byref(csbi))
+            if 0 == k32.GetConsoleScreenBufferInfo(soh, ctypes.byref(csbi)):
+                raise RuntimeError('Unable to get console screen buffer info.')
             self.__seq["default"] = csbi.wAttributes
             self.__seq["fg_default"] = csbi.wAttributes & FG_M
             self.__seq["bg_default"] = csbi.wAttributes & BG_M
 
         self._setup_color()
 
+    def __del__(self):
+        ctypes.windll.kernel32.SetConsoleTextAttribute(self.soh,
+            self.__seq['default'])
+        super(_Win32Term, self).__del__()
+
     def ctext(self, txt='', fg='fg_default', bg='bg_default', *attr):
         if not self.is_term:
             self.nctext(txt)
             return
 
-        c = self.__seq[fg] | self.__seq[bg]
-        for x in attr:
-            c |= self.__seq[x]
+        soh, seq, k32 = self.soh, self.__seq, ctypes.windll.kernel32
 
-        dc = self.__seq['default']
+        c = seq[fg] | seq[bg]
+        for x in attr: c |= seq[x]
 
-        ctypes.windll.kernel32.SetConsoleTextAttribute(self.soh, c)
+        dc = seq['default']
+
+        if 0 == k32.SetConsoleTextAttribute(soh, c):
+            raise RuntimeError('Could not set text attribute.')
         self.so.write(txt)
-        ctypes.windll.kernel32.SetConsoleTextAttribute(self.soh, dc)
+        if 0 == k32.SetConsoleTextAttribute(soh, dc):
+            raise RuntimeError('Could not set text attribute to default.')
 
     def title(self, title):
         if not self.is_term: return
 
         t = ctypes.c_char_p(title)
-        ctypes.windll.kernel32.SetConsoleTitleA(t)
+        if 0 == ctypes.windll.kernel32.SetConsoleTitleA(t):
+            raise RuntimeError('Had trouble setting console title.')
 
     def clear_and_home(self):
         if not self.is_term: return
 
+        soh, k32, wt = self.soh, ctypes.windll.kernel32, ctypes.wintypes
+
         csbi = CONSOLE_SCREEN_BUFFER_INFO()
-        ctypes.windll.kernel32.GetConsoleScreenBufferInfo(self.soh,
-            ctypes.byref(csbi))
+        if 0 == k32.GetConsoleScreenBufferInfo(soh, ctypes.byref(csbi)):
+            raise RuntimeError('Could not get console screen buffer info.')
 
-        con_size = ctypes.wintypes.DWORD(csbi.dwSize.X * csbi.dwSize.Y)
+        con_size = wt.DWORD(csbi.dwSize.X * csbi.dwSize.Y)
 
-        homepos = ctypes.wintypes.COORD(0, 0)
-        chars_written = ctypes.wintypes.DWORD(0)
+        homepos = wt.COORD(0, 0)
+        chars_written = wt.DWORD(0)
 
-        ctypes.windll.kernel32.FillConsoleOutputCharacterA(self.soh,
-            ctypes.c_char(' '), con_size, homepos,
-            ctypes.byref(chars_written))
+        if 0 == k32.FillConsoleOutputCharacterA(soh, ctypes.c_char(' '),
+                con_size, homepos, ctypes.byref(chars_written)):
+            raise RuntimeError('Had trouble filling console with blanks.')
+        if con_size.value != chars_written.value:
+            raise RuntimeError('Blanks underwritten: {} != {}'.format(
+                con_size.value, chars_written.value))
 
-        # Use current attributes here or the ones we started with?
-        ctypes.windll.kernel32.FillConsoleOutputAttribute(self.soh,
-            csbi.wAttributes, con_size, homepos,
-            ctypes.byref(chars_written))
+        if 0 == k32.FillConsoleOutputAttribute(soh, csbi.wAttributes, con_size,
+                homepos, ctypes.byref(chars_written)):
+            raise RuntimeError('Had trouble setting console attributes.')
+        if con_size.value != chars_written.value:
+            raise RuntimeError('Attributes underwritten: {} != {}'.format(
+                con_size.value, chars_written.value))
 
-        ctypes.windll.kernel32.SetConsoleCursorPosition(self.soh,
-            homepos)
+        if 0 == k32.SetConsoleCursorPosition(soh, homepos):
+            raise RuntimeError('Had trouble homing cursor.')
 
     def rows_and_cols(self):
         if not self.is_term: return self.default_R_and_C
 
         csbi = CONSOLE_SCREEN_BUFFER_INFO()
-        ctypes.windll.kernel32.GetConsoleScreenBufferInfo(self.soh,
-            ctypes.byref(csbi))
+        if 0 == ctypes.windll.kernel32.GetConsoleScreenBufferInfo(self.soh,
+                ctypes.byref(csbi)):
+            raise RuntimeError('Could not get console screen buffer info.')
 
         R = csbi.srWindow.Bottom - csbi.srWindow.Top + 1
         C = csbi.srWindow.Right - csbi.srWindow.Left + 1
