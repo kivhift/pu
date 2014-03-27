@@ -13,6 +13,7 @@ import hashlib
 import inspect
 import itertools
 import math
+import modulefinder
 import os
 import Queue
 import random
@@ -1336,3 +1337,58 @@ def pretty_xml(xml_in, xml_out = None, indent = '  ', newln = '\n'):
     xo = xml_out or cStringIO.StringIO()
     xi.writexml(xo, indent = '', addindent = indent, newl = newln)
     return xml_out or xo
+
+def find_modules(script,
+        add_script = False, include_stdlib = False, use_source = False,
+        path = None, debug = 0, excludes = [], replace_paths = []):
+    """Find the modules needed by `script`.
+
+    Return a list of file-/archive-name tuples for the modules needed by
+    `script`.  This format is suitable for deploying the files in an archive or
+    making use of Python's zip-import machinery.
+
+    By default, only non-standard modules are included; i.e., modules from
+    the Python-install hierarchy aren't included in the list.  To include
+    the standard modules, `include_stdlib` can be set to ``True``.
+
+    Also by default, the script itself and the source aren't included.  To
+    include the script, set `add_script` to ``True``.  Similarly, to have
+    the source included in the list instead of the compiled byte code, set
+    `use_source` to ``True``.
+
+    Since this function uses :class:`modulefinder.ModuleFinder` to do the
+    heavy lifting, its arguments are passed through.
+
+    """
+
+    def normabs(p):
+        return os.path.normcase(os.path.normpath(os.path.abspath(p)))
+
+    prefix = normabs(sys.prefix)
+
+    modules = []
+    ma = modules.append
+    finder = modulefinder.ModuleFinder(path = path, debug = debug,
+        excludes = excludes, replace_paths = replace_paths)
+    finder.run_script(script)
+
+    names = finder.modules.keys()
+    if not add_script: names.remove('__main__')
+    names.sort()
+    for name in names:
+        mod = finder.modules[name]
+        fn = mod.__file__
+        if not fn: continue
+        if not include_stdlib and normabs(fn).startswith(prefix): continue
+
+        if not use_source and '.py' == os.path.splitext(fn)[1]: fn += 'c'
+
+        ans = name.split('.')
+        if mod.__path__:
+            ans.append(os.path.basename(fn))
+        else:
+            ans[-1] = os.path.basename(fn)
+
+        ma((fn, '/'.join(ans)))
+
+    return modules
