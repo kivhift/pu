@@ -104,34 +104,34 @@ class _ANSITerm(_TerminalBase):
 
         self.__esc = "\x1b["
 
-        self.__seq = {}
-        self.__seq["normal"]       = '00'
-        self.__seq["bold"]         = '01'
-        self.__seq["faint"]        = '02'
-        self.__seq["standout"]     = '03'
-        self.__seq["underline"]    = '04'
-        self.__seq["blink"]        = '05'
-        self.__seq["reverse"]      = '07'
-        self.__seq["fg_black"]     = '30'
-        self.__seq["fg_red"]       = '31'
-        self.__seq["fg_green"]     = '32'
-        self.__seq["fg_yellow"]    = '33'
-        self.__seq["fg_blue"]      = '34'
-        self.__seq["fg_magenta"]   = '35'
-        self.__seq["fg_cyan"]      = '36'
-        self.__seq["fg_white"]     = '37'
-        self.__seq["fg_default"]   = '39'
-        self.__seq["bg_black"]     = '40'
-        self.__seq["bg_red"]       = '41'
-        self.__seq["bg_green"]     = '42'
-        self.__seq["bg_yellow"]    = '43'
-        self.__seq["bg_blue"]      = '44'
-        self.__seq["bg_magenta"]   = '45'
-        self.__seq["bg_cyan"]      = '46'
-        self.__seq["bg_white"]     = '47'
-        self.__seq["bg_default"]   = '49'
+        self.__seq = seq = {}
+        seq["normal"]       = '00'
+        seq["bold"]         = '01'
+        seq["faint"]        = '02'
+        seq["standout"]     = '03'
+        seq["underline"]    = '04'
+        seq["blink"]        = '05'
+        seq["reverse"]      = '07'
+        seq["fg_black"]     = '30'
+        seq["fg_red"]       = '31'
+        seq["fg_green"]     = '32'
+        seq["fg_yellow"]    = '33'
+        seq["fg_blue"]      = '34'
+        seq["fg_magenta"]   = '35'
+        seq["fg_cyan"]      = '36'
+        seq["fg_white"]     = '37'
+        seq["fg_default"]   = '39'
+        seq["bg_black"]     = '40'
+        seq["bg_red"]       = '41'
+        seq["bg_green"]     = '42'
+        seq["bg_yellow"]    = '43'
+        seq["bg_blue"]      = '44'
+        seq["bg_magenta"]   = '45'
+        seq["bg_cyan"]      = '46'
+        seq["bg_white"]     = '47'
+        seq["bg_default"]   = '49'
 
-        self.__reset = self.__esc + self.__seq['normal'] + 'm'
+        self.__reset = self.__esc + seq['normal'] + 'm'
 
         self.__legal_terms = ["xterm", "Eterm", "aterm", "rxvt",
                 "screen", "kterm", "rxvt-unicode", "cygwin"]
@@ -143,9 +143,10 @@ class _ANSITerm(_TerminalBase):
             self.nctext(txt)
             return
 
-        tmp = self.__esc + self.__seq[fg] + ';' + self.__seq[bg]
+        seq = self.__seq
+        tmp = self.__esc + seq[fg] + ';' + seq[bg]
         for x in attr:
-            tmp += ';' + self.__seq[x]
+            tmp += ';' + seq[x]
         self.so.write(tmp + 'm' + txt + self.__esc + self.__reset)
 
     def title(self, title):
@@ -237,35 +238,35 @@ class _Win32Term(_TerminalBase):
                 and self.so.isatty()
                 and 'ctypes' in globals())
 
-        self.__seq = {}
-        self.__seq["normal"]       = 0
-        self.__seq["bold"]         = FG_I
-        self.__seq["faint"]        = 0
-        self.__seq["standout"]     = 0
-        self.__seq["underline"]    = 0
-        self.__seq["blink"]        = 0
-        self.__seq["reverse"]      = 0
-        self.__seq["fg_bold"]      = FG_I
-        self.__seq["fg_black"]     = 0
-        self.__seq["fg_red"]       = FG_R
-        self.__seq["fg_green"]     = FG_G
-        self.__seq["fg_yellow"]    = FG_R | FG_G
-        self.__seq["fg_blue"]      = FG_B
-        self.__seq["fg_magenta"]   = FG_R | FG_B
-        self.__seq["fg_cyan"]      = FG_G | FG_B
-        self.__seq["fg_white"]     = FG_R | FG_G | FG_B
-        self.__seq["fg_default"]   = FG_R | FG_G | FG_B
-        self.__seq["bg_bold"]      = BG_I
-        self.__seq["bg_black"]     = 0
-        self.__seq["bg_red"]       = BG_R
-        self.__seq["bg_green"]     = BG_G
-        self.__seq["bg_yellow"]    = BG_R | BG_G
-        self.__seq["bg_blue"]      = BG_B
-        self.__seq["bg_magenta"]   = BG_R | BG_B
-        self.__seq["bg_cyan"]      = BG_G | BG_B
-        self.__seq["bg_white"]     = BG_R | BG_G | BG_B
-        self.__seq["bg_default"]   = 0
-        self.__seq["default"]      = FG_R | FG_G | FG_B
+        self.__seq = seq = {}
+        seq["normal"]       = 0
+        seq["bold"]         = FG_I
+        seq["faint"]        = 0
+        seq["standout"]     = 0
+        seq["underline"]    = 0
+        seq["blink"]        = 0
+        seq["reverse"]      = 0
+        seq["fg_bold"]      = FG_I
+        seq["fg_black"]     = 0
+        seq["fg_red"]       = FG_R
+        seq["fg_green"]     = FG_G
+        seq["fg_yellow"]    = FG_R | FG_G
+        seq["fg_blue"]      = FG_B
+        seq["fg_magenta"]   = FG_R | FG_B
+        seq["fg_cyan"]      = FG_G | FG_B
+        seq["fg_white"]     = FG_R | FG_G | FG_B
+        seq["fg_default"]   = FG_R | FG_G | FG_B
+        seq["bg_bold"]      = BG_I
+        seq["bg_black"]     = 0
+        seq["bg_red"]       = BG_R
+        seq["bg_green"]     = BG_G
+        seq["bg_yellow"]    = BG_R | BG_G
+        seq["bg_blue"]      = BG_B
+        seq["bg_magenta"]   = BG_R | BG_B
+        seq["bg_cyan"]      = BG_G | BG_B
+        seq["bg_white"]     = BG_R | BG_G | BG_B
+        seq["bg_default"]   = 0
+        seq["default"]      = FG_R | FG_G | FG_B
 
         if self.is_term:
             k32 = ctypes.windll.kernel32
@@ -276,9 +277,9 @@ class _Win32Term(_TerminalBase):
             csbi = CONSOLE_SCREEN_BUFFER_INFO()
             if 0 == k32.GetConsoleScreenBufferInfo(soh, ctypes.byref(csbi)):
                 raise RuntimeError('Unable to get console screen buffer info.')
-            self.__seq["default"] = csbi.wAttributes
-            self.__seq["fg_default"] = csbi.wAttributes & FG_M
-            self.__seq["bg_default"] = csbi.wAttributes & BG_M
+            seq["default"] = csbi.wAttributes
+            seq["fg_default"] = csbi.wAttributes & FG_M
+            seq["bg_default"] = csbi.wAttributes & BG_M
 
         self._setup_color()
 
