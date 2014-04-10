@@ -12,6 +12,7 @@ class _TerminalBase(object):
         self.so = sys.stdout
         self.is_term = False
         self.default_R_and_C = (25, 80)
+        self._seq = {}
 
     def _setup_color(self):
         if self.is_term:
@@ -76,8 +77,8 @@ class _TerminalBase(object):
     def _exercise(self):
         self.clear_and_home()
         self.nctext('Rows & Cols: %s\n' % str(self.rows_and_cols()))
-        self.ctext('Orbis, te saluto!\n', 'fg_black', 'bg_green')
-        self.ctext('Hello, world!\n', 'fg_white', 'bg_blue')
+        self.ctext('Orbis, te saluto! ==>', 'fg_blue', 'bg_green', 'bold')
+        self.ctext(' Hello, world!\n', 'fg_green', 'bg_blue', 'bold')
         self.black('black\n')
         self.bold_black('bold_black\n')
         self.red('red\n')
@@ -94,6 +95,15 @@ class _TerminalBase(object):
         self.bold_cyan('bold_cyan\n')
         self.white('white\n')
         self.bold_white('bold_white\n')
+        self.ctext('white on red\n', 'fg_white', 'bg_red')
+        self.ctext('black on red\n', 'fg_black', 'bg_red')
+        self.ctext('black on green\n', 'fg_black', 'bg_green')
+        self.ctext('black on yellow\n', 'fg_black', 'bg_yellow')
+        self.ctext('white on blue\n', 'fg_white', 'bg_blue')
+        self.ctext('black on magenta\n', 'fg_black', 'bg_magenta')
+        self.ctext('black on cyan\n', 'fg_black', 'bg_cyan')
+        self.ctext('black on white\n', 'fg_black', 'bg_white')
+        self.ctext('bold black on white\n', 'fg_black', 'bg_white', 'bold')
         self.title('terminal.py was here...')
 
 class _ANSITerm(_TerminalBase):
@@ -104,7 +114,7 @@ class _ANSITerm(_TerminalBase):
 
         self.__esc = "\x1b["
 
-        self.__seq = seq = {}
+        seq = self._seq
         seq["normal"]       = '00'
         seq["bold"]         = '01'
         seq["faint"]        = '02'
@@ -143,7 +153,7 @@ class _ANSITerm(_TerminalBase):
             self.nctext(txt)
             return
 
-        seq = self.__seq
+        seq = self._seq
         tmp = self.__esc + seq[fg] + ';' + seq[bg]
         for x in attr:
             tmp += ';' + seq[x]
@@ -207,7 +217,32 @@ if 'nt' == os.name:
             def __getattr__(self, name):
                 return getattr(ctypes.wintypes, name)
 
+        def check_BOOL(result, func, args):
+            if not result:
+                raise ctypes.WinError()
+
+            return result
+
+        def check_HANDLE(result, func, args):
+            if not result:
+                raise RuntimeError('No standard handle available.')
+
+            # INVALID_HANDLE_VALUE = -1
+            if -1 == result:
+                raise ctypes.WinError()
+
+            return result
+
+        def check_DWORD(result, func, args):
+            if 'GetModuleFileNameA' == func.__name__:
+                if (0 == result) or (len(args[-2]) == result):
+                    raise ctypes.WinError()
+
+            return result
+
         wintypes = _wintypes()
+        wintypes._checks = dict(
+            BOOL = check_BOOL, HANDLE = check_HANDLE, DWORD = check_DWORD)
         wintypes.COORD = wintypes._COORD
 
         class CONSOLE_SCREEN_BUFFER_INFO(ctypes.Structure):
@@ -218,27 +253,37 @@ if 'nt' == os.name:
                 ('srWindow', wintypes.SMALL_RECT),
                 ('dwMaximumWindowSize', wintypes.COORD)
                 ]
-        L = locals()
-        k32 = ctypes.WinDLL('kernel32')
+        # Out of paranoia, make sure the handle to the DLL doesn't get garbage
+        # collected.
+        wintypes._kernel32 = k32 = ctypes.WinDLL('kernel32')
         wintypes.CHAR = ctypes.c_char
         wintypes.LPDWORD = ctypes.POINTER(wintypes.DWORD)
         wintypes.PCONSOLE_SCREEN_BUFFER_INFO = ctypes.POINTER(
             CONSOLE_SCREEN_BUFFER_INFO)
+        L = locals()
         for line in '''
-                FillConsoleOutputAttribute:BOOL,HANDLE,WORD,DWORD,COORD,LPDWORD
-                FillConsoleOutputCharacterA:BOOL,HANDLE,CHAR,DWORD,COORD,LPDWORD
-                GetConsoleScreenBufferInfo:BOOL,HANDLE,PCONSOLE_SCREEN_BUFFER_INFO
-                GetStdHandle:HANDLE,DWORD
-                SetConsoleCursorPosition:BOOL,HANDLE,COORD
-                SetConsoleTextAttribute:BOOL,HANDLE,WORD
-                SetConsoleTitleA:BOOL,LPCSTR
+                FillConsoleOutputAttribute:BOOL:HANDLE,WORD,DWORD,COORD,LPDWORD
+                FillConsoleOutputCharacterA:BOOL:HANDLE,CHAR,DWORD,COORD,LPDWORD
+                GetConsoleScreenBufferInfo:BOOL:HANDLE,PCONSOLE_SCREEN_BUFFER_INFO
+                GetModuleFileNameA:DWORD:HMODULE,LPSTR,DWORD
+                GetStdHandle:HANDLE:DWORD
+                SetConsoleCursorPosition:BOOL:HANDLE,COORD
+                SetConsoleTextAttribute:BOOL:HANDLE,WORD
+                SetConsoleTitleA:BOOL:LPCSTR
                 '''.split():
-            name, _ = line.split(':')
-            args = [getattr(wintypes, i) for i in _.split(',')]
+            name, res, args = line.split(':')
             L[name] = func = getattr(k32, name)
-            func.restype = args.pop(0)
-            func.argtypes = args
-        del L, k32, line, name, _, i, args, func
+            func.restype = getattr(wintypes, res)
+            func.argtypes = [getattr(wintypes, i) for i in args.split(',')]
+            func.errcheck = wintypes._checks[res]
+        del k32, L, line, name, res, args, func, i
+
+        def _kernel32_path(limit = 0x100):
+            buf = ctypes.create_string_buffer(limit)
+            lim = wintypes.DWORD(limit)
+            GetModuleFileNameA(wintypes._kernel32._handle, buf, lim)
+
+            return buf.value
 
 class _Win32Term(_TerminalBase):
     def __init__(self):
@@ -248,7 +293,6 @@ class _Win32Term(_TerminalBase):
         STDIN_HANDLE = -10
         STDOUT_HANDLE = -11
         STDERR_HANDLE = -12
-        INVALID_HANDLE_VALUE = -1
         # foreground color and intensity
         FG_B = 0x01
         FG_G = 0x02
@@ -266,7 +310,7 @@ class _Win32Term(_TerminalBase):
                 and self.so.isatty()
                 and 'ctypes' in globals())
 
-        self.__seq = seq = {}
+        seq = self._seq
         seq["normal"]       = 0
         seq["bold"]         = FG_I
         seq["faint"]        = 0
@@ -298,12 +342,9 @@ class _Win32Term(_TerminalBase):
 
         if self.is_term:
             self.soh = soh = GetStdHandle(STDOUT_HANDLE)
-            if not soh or (INVALID_HANDLE_VALUE == soh):
-                raise RuntimeError('Unable to get standard handle.')
 
             csbi = CONSOLE_SCREEN_BUFFER_INFO()
-            if not GetConsoleScreenBufferInfo(soh, ctypes.byref(csbi)):
-                raise RuntimeError('Unable to get console screen buffer info.')
+            GetConsoleScreenBufferInfo(soh, csbi)
             seq["default"] = csbi.wAttributes
             seq["fg_default"] = csbi.wAttributes & FG_M
             seq["bg_default"] = csbi.wAttributes & BG_M
@@ -311,8 +352,7 @@ class _Win32Term(_TerminalBase):
         self._setup_color()
 
     def __del__(self):
-        # Ignore the return value here.
-        SetConsoleTextAttribute(self.soh, self.__seq['default'])
+        SetConsoleTextAttribute(self.soh, self._seq['default'])
         super(_Win32Term, self).__del__()
 
     def ctext(self, txt='', fg='fg_default', bg='bg_default', *attr):
@@ -320,24 +360,19 @@ class _Win32Term(_TerminalBase):
             self.nctext(txt)
             return
 
-        soh, seq = self.soh, self.__seq
+        soh, seq = self.soh, self._seq
 
         c = seq[fg] | seq[bg]
         for x in attr: c |= seq[x]
 
-        dc = seq['default']
-
-        if not SetConsoleTextAttribute(soh, c):
-            raise RuntimeError('Could not set text attribute.')
+        SetConsoleTextAttribute(soh, c)
         self.so.write(txt)
-        if not SetConsoleTextAttribute(soh, dc):
-            raise RuntimeError('Could not set text attribute to default.')
+        SetConsoleTextAttribute(soh, seq['default'])
 
     def title(self, title):
         if not self.is_term: return
 
-        if not SetConsoleTitleA(ctypes.c_char_p(title)):
-            raise RuntimeError('Had trouble setting console title.')
+        SetConsoleTitleA(ctypes.c_char_p(title))
 
     def clear_and_home(self):
         if not self.is_term: return
@@ -345,37 +380,32 @@ class _Win32Term(_TerminalBase):
         soh = self.soh
 
         csbi = CONSOLE_SCREEN_BUFFER_INFO()
-        if not GetConsoleScreenBufferInfo(soh, ctypes.byref(csbi)):
-            raise RuntimeError('Could not get console screen buffer info.')
+        GetConsoleScreenBufferInfo(soh, csbi)
 
         con_size = wintypes.DWORD(csbi.dwSize.X * csbi.dwSize.Y)
 
         homepos = wintypes.COORD(0, 0)
         chars_written = wintypes.DWORD(0)
 
-        if not FillConsoleOutputCharacterA(soh, ctypes.c_char(' '),
-                con_size, homepos, ctypes.byref(chars_written)):
-            raise RuntimeError('Had trouble filling console with blanks.')
+        FillConsoleOutputCharacterA(soh, ctypes.c_char(' '), con_size,
+            homepos, chars_written)
         if con_size.value != chars_written.value:
             raise RuntimeError('Blanks underwritten: {} != {}'.format(
                 con_size.value, chars_written.value))
 
-        if not FillConsoleOutputAttribute(soh, csbi.wAttributes, con_size,
-                homepos, ctypes.byref(chars_written)):
-            raise RuntimeError('Had trouble setting console attributes.')
+        FillConsoleOutputAttribute(soh, csbi.wAttributes, con_size, homepos,
+            chars_written)
         if con_size.value != chars_written.value:
             raise RuntimeError('Attributes underwritten: {} != {}'.format(
                 con_size.value, chars_written.value))
 
-        if not SetConsoleCursorPosition(soh, homepos):
-            raise RuntimeError('Had trouble homing cursor.')
+        SetConsoleCursorPosition(soh, homepos)
 
     def rows_and_cols(self):
         if not self.is_term: return self.default_R_and_C
 
         csbi = CONSOLE_SCREEN_BUFFER_INFO()
-        if not GetConsoleScreenBufferInfo(self.soh, ctypes.byref(csbi)):
-            raise RuntimeError('Could not get console screen buffer info.')
+        GetConsoleScreenBufferInfo(self.soh, csbi)
 
         R = csbi.srWindow.Bottom - csbi.srWindow.Top + 1
         C = csbi.srWindow.Right - csbi.srWindow.Left + 1
