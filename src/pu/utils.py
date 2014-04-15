@@ -323,6 +323,24 @@ def generate_R_password(sz = default_pw_size, chars = pppw_Rs):
     """Generate right-handed password via :func:`generate_password`."""
     return generate_password(sz = sz, chars = chars)
 
+_readable_chars = (
+    '0123456789'
+    'abcdefghijkmnopqrstuvwxyz'
+    'ABCDEFGHJKLMNPQRSTUVWXYZ'
+    '~@#$%^&*-_=+\<>/?'
+)
+def generate_readable_password(sz = default_pw_size):
+    """Generate a readable password via :func:`generate_password`.
+
+    Use characters that don't tend to be confused within certain font faces,
+    handwriting, etc., so as to make the password easier to use.  Digits are
+    favored over letters where confusion could be present.  For example, a zero
+    is used instead of a capital O and a one is used instead of either a
+    capital I or a lowercase L.
+
+    """
+    return generate_password(sz = sz, chars = _readable_chars)
+
 def copy_file(From, To, clobber=False):
     """Copy file `From` to file/directory `To` and `clobber` `To` if wanted."""
     if not os.path.isfile(From):
