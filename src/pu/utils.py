@@ -19,6 +19,7 @@ import Queue
 import random
 import re
 import shutil
+import string
 import subprocess
 import sys
 import tempfile
@@ -289,9 +290,8 @@ def get_app_data_dir(name):
     elif 'nt' == osn:
         return os.path.join(os.environ['APPDATA'], name)
 
-default_pw_size = 15
-default_pw_chars = \
-'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'
+default_pw_size = 20
+default_pw_chars = string.digits + string.ascii_letters + string.punctuation
 
 def generate_password(sz = default_pw_size, chars = default_pw_chars):
     """Generate a random password using `sz` characters from `chars`."""
