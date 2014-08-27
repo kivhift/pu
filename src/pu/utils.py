@@ -4,6 +4,7 @@
 """
 A collection of utility code.
 """
+from __future__ import print_function
 
 import atexit
 import cStringIO
@@ -76,7 +77,7 @@ def warn(msg = '', *args):
     if len(args) > 0:
         msg += ': ' + ' '.join(map(str, args))
 
-    if msg: print '\n', sandwich_wrap(msg)
+    if msg: print('\n', sandwich_wrap(msg))
 
 def ddie(msg = '', *args):
     """Call :func:`die` with `msg` and `args` otherwise keeping defaults."""
@@ -89,7 +90,7 @@ def sandwich_wrap(msg, wrapper = '-', width = 0):
     length of `msg` is less than `width`, then the wrap width is limited to
     ``len(msg)``.  Here is a representative sample::
 
-        >>> print pu.utils.sandwich_wrap('Hello!', '^')
+        >>> print(pu.utils.sandwich_wrap('Hello!', '^'))
         ^^^^^^
         Hello!
         ^^^^^^
@@ -365,7 +366,7 @@ def function_name():
     sample::
 
         >>> def a(): return pu.utils.function_name()
-        >>> print a()
+        >>> print(a())
         a
 
     """
@@ -379,7 +380,7 @@ def caller_function_name():
 
         >>> def a(): return pu.utils.caller_function_name()
         >>> def b(): return a()
-        >>> print b()
+        >>> print(b())
         b
 
     """
@@ -398,8 +399,7 @@ def note_to_self(msg = ''):
 
     """
     fi = inspect.getframeinfo(inspect.currentframe().f_back)
-    print '[*] %s <%s:%s @ %d>' % (msg, os.path.basename(fi[0]),
-        fi[2], fi[1])
+    print('[*] %s <%s:%s @ %d>' % (msg, os.path.basename(fi[0]), fi[2], fi[1]))
 
 class CheckedObject(object):
     """Only allow class-defined attributes.
@@ -580,7 +580,7 @@ def directory_tree(basedir, padding = ' ', with_files = False):
     if `with_files` is True.  As an example, the current src directory for this
     package looks like this::
 
-        >>> print pu.utils.directory_tree('src')
+        >>> print(pu.utils.directory_tree('src'))
         +-src/
           +-pu/
           | +-scons/
