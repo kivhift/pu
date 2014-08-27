@@ -518,6 +518,34 @@ class ProgressIndicator(object):
         fn(*args, **kwargs)
         self.incrementProgressValue()
 
+class CLIProgress(object):
+    def __init__(self, finalcount, block_char = '#', terminate = True):
+        self.finalcount = finalcount
+        self.block = block_char[0]
+        self.terminate = terminate
+        self.fout = f = sys.stdout
+        f.write('\n'
+            '__________________ % Progress ____________________\n'
+            '                                                 1\n'
+            '____1____2____3____4____5____6____7____8____9____0\n'
+            '    0    0    0    0    0    0    0    0    0    0\n'
+        )
+
+    def progress(self, count):
+        count = min(count, self.finalcount)
+        if self.finalcount:
+            percentcomplete = int(round((100.0 * count) / self.finalcount))
+            if percentcomplete < 1: percentcomplete = 1
+        else:
+            percentcomplete = 100
+        blockcount = percentcomplete / 2
+        f = self.fout
+        f.write('\r')
+        f.write(self.block * blockcount)
+        f.flush()
+        if 100 == percentcomplete and self.terminate:
+            f.write('\n')
+
 def contains_any(seq, aset):
     """Check whether `seq` contains any of the items in `aset`. (PC2e:1.8)"""
     for c in seq:
