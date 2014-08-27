@@ -107,6 +107,7 @@ class _TerminalBase(object):
         self.title('terminal.py was here...')
 
 class _ANSITerm(_TerminalBase):
+    ESC = '\x1b['
     def __init__(self):
         super(_ANSITerm, self).__init__()
 
@@ -202,6 +203,84 @@ class _ANSITerm(_TerminalBase):
                 rows_cols = (25, 80)
 
         return int(rows_cols[0]), int(rows_cols[1])
+
+    @staticmethod
+    def term_colors():
+        """Return the 256 terminal colors as a list of RGB hex triples."""
+        _rgbfmt = ('{:02x}' * 3)
+
+        def _3(x, on):
+            _ = lambda i: on if i else 0
+            n = divmod(x, 8)[1]
+            return _rgbfmt.format(_(n & 0b1), _(n & 0b10), _(n & 0b100))
+
+        rgb = []
+        ra = rgb.append
+
+        # system colors
+        for i in xrange(7): ra(_3(i, 0x80))
+        ra(_3(7, 0xc0))
+        ra(_3(7, 0x80))
+        for i in xrange(9, 16): ra(_3(i, 0xff))
+
+        # color cube
+        for r in xrange(6):
+            for g in xrange(6):
+                for b in xrange(6):
+                    i = 36 * r + 6 * g + b + 16
+                    ra(_rgbfmt.format(
+                        r and (r * 40 + 55),
+                        g and (g * 40 + 55),
+                        b and (b * 40 + 55)))
+
+        # grayscale ramp
+        for i in xrange(24):
+            x = (i * 10) + 8
+            ra(_rgbfmt.format(x, x, x))
+
+        return rgb
+
+    @staticmethod
+    def print_term_colors(only = None):
+        """Print the terminal colors to standard out.
+
+        If desired, the output can be limited by setting `only` to a string
+        combination of ``system``, ``color-cube`` or ``gray-ramp`` separated by
+        whitespace; e.g., `only` = ``system gray-ramp`` will produce just the
+        system colors and the gray-scale ramp.
+        """
+        only = only.split() if only else 'system color-cube gray-ramp'.split()
+        RGB = _ANSITerm.term_colors()
+        ESC = _ANSITerm.ESC
+        RESET = ESC + '0m'
+        fg = ESC + '38;5;{0}m {0:03d}#{1}'
+
+        def reset():
+            print(RESET, end = '')
+
+        def pfmt(i):
+            print(fg.format(i, RGB[i]), sep = '', end = '')
+
+        if 'system' in only:
+            print('System colors:')
+            for i in xrange(16):
+                pfmt(i)
+                if 3 == divmod(i, 4)[1]: print()
+            reset()
+
+        if 'color-cube' in only:
+            print('Color cube (6x6x6):')
+            for i in xrange(16, 232):
+                pfmt(i)
+                if 3 == divmod(i, 6)[1]: print()
+            reset()
+
+        if 'gray-ramp' in only:
+            print('Gray-scale ramp:')
+            for i in xrange(232, 256):
+                pfmt(i)
+                if 3 == divmod(i, 6)[1]: print()
+            reset()
 
 if 'nt' == os.name:
     try:
