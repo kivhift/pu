@@ -77,7 +77,7 @@ def warn(msg = '', *args):
     if len(args) > 0:
         msg += ': ' + ' '.join(map(str, args))
 
-    if msg: print('\n', sandwich_wrap(msg))
+    if msg: print('\n', sandwich_wrap(msg), sep = '')
 
 def ddie(msg = '', *args):
     """Call :func:`die` with `msg` and `args` otherwise keeping defaults."""
